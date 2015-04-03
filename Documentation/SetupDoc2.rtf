@@ -1,202 +1,0 @@
-{\rtf1\ansi\ansicpg1252\cocoartf1265\cocoasubrtf200
-{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
-{\colortbl;\red255\green255\blue255;}
-\margl1440\margr1440\vieww10800\viewh8400\viewkind0
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
-
-\f0\fs24 \cf0 Downloaded current RSM from drop box\
-\
-x	Brought over movies	\
-		from 070414 dev\
-\
-x	Switched to copy of Setup_Rig from 070414_Dev\
-\
-	Checked that monitor description was in place\
-\
-x	Edited Start_RSM\
-\
-x	Look for ni6501\
-\
-x	setup\
-\
-X	reboot\
-	\
-\
-X	try rsm\
-\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
-
-\b \cf0 Part 1: Set up of RSM environment. \
-	A:	Once per hardware setup.
-\b0 \
-XX 		> Setup of NIDaq environment (NIDAQ base 3.6)\
-	\
-XX		> Update 6501 firmware. \{RP: how is this done\}\
-\
-XX		> Setup X-11 environment. (Download XQuartx 2.7.5.dmg if necessary). 
-\i NB: More documentation is available on this from Justin\'92s site. \
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
-
-\i0 \cf0 	\
-		> Setup Xcode environment (Standard Apple download).\
-XX			Download Xcode command line tools.\
-\{MAKE MORE EXPLICIT\}\
-\
-	
-\b B: 	Matlab configuration issues.
-\b0 \
-XX		> Pre-run matlab setup: Set your matlab path to include (with subdirectories) the RSM directory. \{RP\}\
-\
-XX	
-\b C:	RSM configuration issues.\
-		
-\b0 > Setup directory and bring over files. 
-\b \
-\
-XX		
-\b0 > If necessary re-compile mex files. (See re-compiling appendix). 
-\i NB: Appendix under construction.
-\i0  \{MAKE MORE EXPLICIT\}
-\b \
-
-\b0 \
-		> Construct monitor calibration. This is done within the RSM framework. \
-		Produces a 
-\i monitor object
-\i0  that describes all relevant monitor properties.  These are stored in \{RSM\}/RSM_Monitors    \{RP: see relevant appendix\}\
-\
-		> Make sure that current RSM home directory and monitor description are set appropriately in 
-\i Rig_Setup.m
-\i0  file. This file lives in RSM_Utils.           \
- \
- XX 
-\b Once per reboot of computer
-\b0 \
-		>  Pre-run machine setup issues: From a terminal window run: "sudo mdutil -i off" (spotlight)\
-\
-\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
-
-\b \cf0 Part 2: Setup RSM Session on Matlab:\
-\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
-
-\b0 \cf0 XX> Shut down all non-Matlab applications. To obtain proper performance of RSM cannot tolerate any competition beyond the operating system. 
-\b \
-
-\b0          \
-> Start Matlab.\
-\
-xx> Set Matlab working directory to RSM directory.\
-	(This can live anywhere, but for permissions reasons should live within the home directory of whatever user runs the RSM program).  \{REMOVE OR REPHRASE DOESNT BELONG HERE\}
-\b \
-
-\b0 \
-\
-Things are now ready to run 
-\i RSM_Batch
-\i0  from the command line to see the stimulus demos.\
-\
-\
-\
-\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
-
-\b \cf0 Gamma Calibration Appendix
-\b0 \
-Xiaoyang Yao and Bill Vinje\
-\
-\
-The goal is to generate a suitable \'93Monitor_Obj\'94 which is a matlab data structure of the object type. RSM uses this structure to control things like the gamma tables. \
-\
-\
-Here is an example of the properties embodied in a monitor object:\
-\
-\
-Monitor_Obj with properties:\
-            monitor_name: 'RigA_CRT1'\
-            num_lut_bits: 8\
-            gamma_model: @BrainardModel\
-            optometer_raw_data: [153x4 double]\
-            red_table: [1x256 double]\
-            green_table: [1x256 double]\
-            blue_table: [1x256 double]\
-            red_params: [2.5200 32 3.2181]\
-            green_params: [2.5200 32 3.1320]\
-            blue_params: [2.5200 32 3.1645]\
-            gamma_test_date: '09-Jan-2014'\
-            width: 640\
-            physical_width: 28.5000\
-            height: 480\
-            physical_height: 21.5000\
-            screen_refresh_freq: 119.5175\
-            cen_width: 320\
-            cen_height: 240\
-            default_mondesc_path: './RSM_Monitors/'\
-            mon_num: 2\
-            backgrndcolor: [0.5000 0.5000 0.5000] \
-\
-\
-Step 0: Fix a potential bug\
-\
-\
-Open Monitor_Obj.m (which lives in RSM_Classes). \
-In line 56 \'93function[obj] = Monitor_Obj_New( varargin )\'94 should be \'93function[obj] = Monitor_Obj( varargin ).\'94 All you have to do is remove \'93_New\'94.\
-\
-\
-Step 1: Set up basic information \
-\
-\
-* Set your matlab path to include the RSM home directory with subdirectories.\
-* Navigate your matlab working directory to the RSM_Monitors directory.\
-* At the matlab command prompt: "new_display = Configure_Display". You should see the following menu:\
-****************************************\
-*  RSM Monitor Configuration Utility.  *\
-****************************************\
-Options: \
-[ 1]         Create new monitor object. \
-[ 2]         Load existing monitor object. \
-[ 3]         Edit existing monitor object. \
-[ 4]         Collect data for new gamma profile. \
-[ 5]         Visualize gamma profile. (doesn\'92t yet work)\
-[ 6]         Remake gamma tables using best-fit gamma parameters. \
-[ 7]         Remake gamma tables using values interpolated from data. \
-[ 8]         Test existing gamma profile linearity. \
-[ 9]         Determine frame refresh frequency. \
-[10]         Save new monitor object. \
-[11]         Exit. \
-\
-\
-Enter number of option:\
-\
-\
-* Choose 1 to initialize. You\'92ll be asked to fill in some basic information about the display including:\
-   * Human name of monitor (remember to use single quotation mark)\
-   * Width of stimulus display screen [pixels]\
-   * Width of stimulus display screen [pixels]\
-   * Physical width of stimulus display screen [cm]\
-   * Height of stimulus display screen [pixels]\
-   * Physical height of stimulus display screen [cm]\
-   * Vertical refresh frequency of stimulus display screen [Hz] (round numbers are fine)\
-   * Number of bits in LUT [bits]: \
-* If you want to change any of these information, choose 3 in the main menu and choose whatever you want to change in the submenu. Also you can add the following information:\
-   * Default monitor description path. (should be answered with './RSM_Monitors/\'91)\
-   * Monitor location number. \
-   * Monitor default background color.\
-* Save the object by choosing 10 in the main menu.\
-* Choose 9 to empirically adjust the frame rate to high precision. Here the refresh frequency will be calculated in real-time. You will be asked to input the data collection time.\
-* Save\
-\
-\
-Step 2: Gamma calibration\
-* Choose 4 to collect data for gamma profile\
-   * You will be prompted with questions specific for a \'93Graseby 350 Linear/Log Optometer\'94. If this is the optometer model you are using, please check the setting as those questions instruct. If not, just choose 1 for all these questions.\
-   * Enter the power readings of optometer as data collection starts. At the end of each round, you can choose to collect another repetition or stop.\
-   * Once you have collected data the program will generate default gamma tables via matlab\'92s interpolation functions. The interpolated gamma tables can be changed to values based on a best fit of a classic gamma function model (Brainards). This is done by using option \'936\'94 in main menu (and can be set back to the interpolated value by option \'937\'94).\
-* Save\
-* Choose 8 to test linearity of gamma calibrations. This part is mostly same with 4.\
-* Save\
-* Choose 11 to exit.\
-\
-\
-}
