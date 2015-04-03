@@ -1,0 +1,16 @@
+Test environment at USC (October, 2014)
+
+•	Machine 1:
+o	OS X 10.9.4
+o	Graphics: ATI Radeon HD 5770 1024 MB
+o	Memory: 16 GB 1066 MHz DDR3 ECC
+o	Processor: 2 x 2.4 GHz Quad-Core Intel Xeon
+o	Matlab 2013a
+
+•	Machine 2:
+o	OS X 10.8.5
+o	Graphics: ATI Radeon HD 5770 1024 MB
+o	Memory: 8 GB 1066 MHz DDR3 ECC
+o	Processor: 3.2 GHz Quad-Core Intel Xeon
+o	Matlab 2013a
+
