@@ -18,7 +18,7 @@
 
 function[ exp_session ] = Setup_Rig
 
-home_dir_base = '/Users/acquisition/Documents/MATLAB/RSM';
+home_dir_base = '/Users/acquisition/Documents/RSM';
 
 % Setup for experimental session constructor
 
