@@ -1,5 +1,4 @@
 classdef	Moving_Grating < handle
-    % Focus_Squares: Presents simple quad-pattern for aid in stimulus focusing
 %
 %        $Id: NAME VER_ID DATA-TIME vinje $
 %      usage: NAME(Args)
@@ -7,55 +6,55 @@ classdef	Moving_Grating < handle
 %       date: Date
 %  copyright: (c) Date William Vinje, Eduardo Jose Chichilnisky (GPL see RSM/COPYING)
 
-	properties
+    properties
         
-        % Required props for all stim classes        
-        stim_name
-        subtype
-
-        run_date_time
-        run_time_total
+        % Required props for all stim classes
         
-        main_trigger
-        tmain0
+        % could come from S file or user-given
+        color
+        phase_t0
+        grating_sf_pix % pixels per cycle
+        phase_velocity
+        n_frames
         
-        rep_trigger
-        trep0
-
-        run_duration
-        stim_update_freq               
-        
-        run_script
-        
-        wait_key
-        wait_trigger
-    
+        % background color
         backgrndcolor
         
-        n_for_each_stim
-        n_repeats
-        frames_shown
-
-        n_frames
-
+        % more params
+        grating_sf_dva      % cyc per DVA (one DVA is 1 cm on screen)
+        grating_angle
         
+        % monitor size - always full field
         physical_width
         physical_height
         
-        color
-        
-        phase_t0
-        phase_velocity
-        moving_params 
-        
-        grating_sf_pix      % pixels per cycle 
-        grating_sf_dva      % cyc per DVA (one DVA is 1 cm on screen)
-        
-        grating_angle
+        % interval
         interval
         
-	
-	end			% properties block
+        %subtype
+        subtype
+        
+        % key, trigger, repeats
+        wait_key
+        wait_trigger
+        n_for_each_stim
+        n_repeats
+        
+        % initialized
+        run_date_time
+        run_time_total
+        stim_update_freq
+        main_trigger
+        tmain0
+        trep0
+        frames_shown
+
+    end	% properties block
+    
+    properties(Constant)
+            stim_name = 'Moving_Grating';
+            run_script = 'Run_PhaseLoop_Rep( exp_obj.stimulus );';
+    end
 	
 	
 	
@@ -64,106 +63,6 @@ classdef	Moving_Grating < handle
         % Constructor method
         function[obj] = Moving_Grating( stimuli, exp_obj )
             
-          if ( ~isfield( stimuli, 'parsed_S') )
-          %-------------------------------------------------------------------------------------------------------------------    
-          % Then we use the stimuli structure constructor mode
-          
-          
-             %%%%%  check if all user-defined fields exist  %%%%%
-          
-             user_fields = {'rgb','subtype', 'interval','phase0', 'temporal_period', ...
-                 'spatial_period', 'direction', 'frames', 'n_for_each_stim'};
-             missed_fields=[];
-             for i=1:length(user_fields)
-                 if ~isfield(stimuli,user_fields{i})
-                     missed_fields = [missed_fields i];
-                 end
-             end
-             if ~isempty(missed_fields)
-                 for i = missed_fields
-                     fprintf(['\t RSM ERROR: ',user_fields{i},' is missing. Please define and try again. \n']);
-                 end
-                 return
-             end
-             
-             %%%%%  These are copied from stimuli and exp_obj fields  %%%%%
-          
-             obj.color = stimuli.rgb';
-             obj.color = Color_Test( obj.color );
-             
-             obj.backgrndcolor = stimuli.back_rgb';
-             obj.backgrndcolor = Color_Test( obj.backgrndcolor );
-             
-             obj.subtype = stimuli.subtype;
-             obj.interval = stimuli.interval; 
-             
-             obj.n_repeats = stimuli.n_repeats;
-             
-             obj.n_for_each_stim = stimuli.n_for_each_stim;
-             
-             if (stimuli.direction >= 360)
-                 stimuli.direction = stimuli.direction - 360;
-             end
-             
-             if (stimuli.direction < 0)
-                 stimuli.direction = stimuli.direction + 360;
-             end
-             
-             
-             % Convention 0 deg is 3 oclock
-             if  (stimuli.direction >= 0) && (stimuli.direction < 45)
-                 obj.moving_params = [1/cos(stimuli.direction/180*pi), 0, 1, 1];
-                 
-             elseif (stimuli.direction >= 315) && (stimuli.direction < 360)
-                 obj.moving_params = [1/cos(stimuli.direction/180*pi), 0, 1, 1];
-                 
-             elseif (stimuli.direction >= 45) && (stimuli.direction < 135)
-                 obj.moving_params = [0, 1/sin(stimuli.direction/180*pi), 1, 1];
-                 
-             elseif (stimuli.direction >= 135) && (stimuli.direction < 225)
-                 obj.moving_params = [1/cos(stimuli.direction/180*pi), 0, 1, 1];
-                 
-             elseif (stimuli.direction >= 225) && (stimuli.direction < 360)
-                 obj.moving_params = [0, 1/sin(stimuli.direction/180*pi), 1, 1];
-                 
-             end
-             
-             obj.phase_velocity = 360/stimuli.temporal_period;
-             obj.phase_t0 = stimuli.phase0;
-             obj.grating_sf_pix = stimuli.spatial_period;
-             obj.grating_sf_dva = Convert_SF2DVA( obj.grating_sf_pix, exp_obj );
-             obj.grating_angle = stimuli.direction;
-             
-             obj.n_frames = stimuli.frames;
-             
-             obj.physical_width = exp_obj.monitor.physical_width;
-             obj.physical_height = exp_obj.monitor.physical_height;
-             
-             %%%%%  These are simply initialized  %%%%%
-            
-             
-             obj.frames_shown = 0;
-             obj.wait_trigger = stimuli.wait_trigger;
-             obj.wait_key = stimuli.wait_key;
-             
-             obj.stim_name = 'Moving_Grating';
-             obj.run_script = 'Run_PhaseLoop_Rep( exp_obj.stimulus );';
-             
-             obj.run_date_time = [];
-             obj.run_time_total = [];
-             
-             obj.stim_update_freq = []; % By setting this to empty we remove artificial delay in main execution while loop
-             
-             obj.main_trigger = 0;
-             obj.tmain0 = [];
-             obj.rep_trigger = 0;
-             obj.trep0 = [];
-             
-             obj.frames_shown = 0;
-             
-          else
-          %-------------------------------------------------------------------------------------------------------------------    
-          % Then we use the S_file constructor mode
             % Contents of parsed_S for moving grating stim
             % This constructor creates a moving grating stimulus based upon
             % the element of the sinusoid structure array specified by
@@ -196,88 +95,116 @@ classdef	Moving_Grating < handle
             %   rgbs: {1x144 cell}
             %  spatialphases: [1x144 double]
             
-            obj.color = [stimuli.parsed_S.sinusoids(stimuli.index).rgb{1}; stimuli.parsed_S.sinusoids(stimuli.index).rgb{2}; stimuli.parsed_S.sinusoids(stimuli.index).rgb{3}];          % Note: color is rgb vector in [0-1] format  
+            %%%%%  check if all user-defined fields exist  %%%%%
+            
+            user_fields = {'back_rgb', 'subtype', 'interval', 'n_for_each_stim',...
+                'n_repeats', 'wait_trigger', 'wait_key'};
+            missed_fields=[];
+            for i=1:length(user_fields)
+                if ~isfield(stimuli,user_fields{i})
+                    missed_fields = [missed_fields i];
+                end
+            end
+            if ~isempty(missed_fields)
+                for i = missed_fields
+                    fprintf(['\t RSM ERROR: ',user_fields{i},' is missing. Please define and try again. \n']);
+                end
+                return
+            end
+            
+            if isfield( stimuli, 'parsed_S')
+                obj.color = [stimuli.parsed_S.sinusoids(stimuli.index).rgb{1}; stimuli.parsed_S.sinusoids(stimuli.index).rgb{2}; stimuli.parsed_S.sinusoids(stimuli.index).rgb{3}];          % Note: color is rgb vector in [0-1] format
+                obj.phase_t0 = stimuli.parsed_S.sinusoids(stimuli.index).spatial_phase;
+                obj.grating_sf_pix = stimuli.parsed_S.sinusoids(stimuli.index).spatial_period;
+                direction = stimuli.parsed_S.spec.orientation;
+                obj.phase_velocity = 360 / stimuli.parsed_S.sinusoids(stimuli.index).temporal_period;
+                obj.n_frames = stimuli.parsed_S.spec.frames;
+            else
+                user_fields = {'rgb', 'phase0', 'temporal_period', ...
+                    'spatial_period', 'direction', 'frames'};
+                missed_fields=[];
+                for i=1:length(user_fields)
+                    if ~isfield(stimuli,user_fields{i})
+                        missed_fields = [missed_fields i];
+                    end
+                end
+                if ~isempty(missed_fields)
+                    for i = missed_fields
+                        fprintf(['\t RSM ERROR: ',user_fields{i},' is missing. Please define and try again. \n']);
+                    end
+                    return
+                end
+                obj.color = stimuli.rgb';
+                obj.phase_t0 = stimuli.phase0;
+                obj.grating_sf_pix = stimuli.spatial_period;
+                direction = stimuli.direction;
+                obj.phase_velocity = 360/stimuli.temporal_period;
+                obj.n_frames = stimuli.frames;
+                
+            end
+            % agjust phase velocity
+            if abs(direction-180)>=180
+                direction = direction - sign(direction)*360;
+            end
+            % Convention 0 deg is 3 oclock
+            if  (direction >= 0 && direction < 45) || (direction >= 315 && direction < 360) || (direction >= 135 && direction < 225)
+                obj.moving_params = [1/cos(stimuli.direction/180*pi), 0, 1, 1];
+            elseif (direction >= 45 && direction < 135) || (direction >= 225 && direction < 360)
+                obj.moving_params = [0, 1/sin(stimuli.direction/180*pi), 1, 1];
+                
+            else
+                fprintf('\t RSM ERROR: direction out of bounds \n');
+                return
+            end
+            if  (direction >= 0 && direction < 90) || (direction >= 180 && direction < 270)
+                polarity_sign = 1;
+            elseif (direction >= 90 && direction < 180) || (direction >= 270 && direction < 360)
+                polarity_sign = -1;
+            end
+            obj.phase_velocity = polarity_sign * obj.phase_velocity;
+            
+            % adjust colors
             obj.color = Color_Test( obj.color );
+            obj.backgrndcolor = stimuli.back_rgb';
+            obj.backgrndcolor = Color_Test( obj.backgrndcolor );
             
-            obj.phase_t0 = stimuli.parsed_S.sinusoids(stimuli.index).spatial_phase;   
-            
-            obj.grating_sf_pix = stimuli.parsed_S.sinusoids(stimuli.index).spatial_period;
-            
+            % some params...
             obj.grating_sf_dva = Convert_SF2DVA( obj.grating_sf_pix, exp_obj );
+            obj.grating_angle = direction;% in counterphase grating, it is direction - 90!
             
-            direction = stimuli.parsed_S.spec.orientation;
+            % size
+            obj.physical_width = exp_obj.monitor.physical_width;
+            obj.physical_height = exp_obj.monitor.physical_height;
             
-            if (direction >= 360)
-                direction = direction - 360;
-            end
-                           
-            if (direction < 0)
-                direction = direction + 360;
-            end
-                           
-            obj.grating_angle = direction -90;
-                         
-           % Convention 0 deg is 3 oclock
-           if  (direction >= 0) || (direction < 90)
-                polarity_sign = 1;
-                                
-           elseif (direction >= 90) || (direction < 180)
-                polarity_sign = -1;
-                                
-           elseif (direction >= 180) || (direction < 270)
-                polarity_sign = 1;
-                                
-           elseif (direction >= 270) || (direction < 360)
-                polarity_sign = -1;
-
-           end
-                            
-           obj.phase_velocity = polarity_sign * (360 / stimuli.parsed_S.sinusoids(stimuli.index).temporal_period);
-           
-           
-           obj.n_frames = stimuli.parsed_S.spec.frames;
-           
-           obj.n_repeats = stimuli.n_repeats;
-           
-           % The background color is set to the monitor default background
-           % color
-           obj.backgrndcolor = exp_obj.monitor.backgrndcolor';
-           obj.backgrndcolor = Color_Test( obj.backgrndcolor );
-           
-           obj.wait_trigger = 0;               % We always turn off triggering for S file construction.
-           obj.wait_key = 0;
-           
-           
-           obj.stim_name = 'Moving_Grating';
-           
-           obj.run_date_time = [];
-           obj.run_time_total = [];
-           
-           obj.stim_update_freq = []; % By setting this to empty we remove artificial delay in main execution while loop
-           
-           obj.main_trigger = 0;
-           obj.tmain0 = [];
-           
-           obj.rep_trigger = 0;
-           obj.trep0 = [];
-           
-           obj.run_script = 'Run_PhaseLoop_Rep( exp_obj.stimulus );';
-           
-           obj.physical_width = exp_obj.monitor.physical_width;
-           obj.physical_height = exp_obj.monitor.physical_height;
-           
-           obj.frames_shown = 0;
-           
-          end   % stimuli vs Sfile if-then
-
-		end		% constructor 
+            % interval
+            obj.interval = stimuli.interval;
+            
+            % subtype
+            obj.subtype = stimuli.subtype;
+            
+            % key, trigger, repeats
+            obj.wait_trigger = stimuli.wait_trigger;
+            obj.wait_key = stimuli.wait_key;
+            obj.n_for_each_stim = stimuli.n_for_each_stim;
+            obj.n_repeats = stimuli.n_repeats;
+            
+            %%%%%  Simply initialized  %%%%%
+            
+            obj.run_date_time = [];
+            obj.run_time_total = [];
+            obj.stim_update_freq = []; % By setting this to empty we remove artificial delay in main execution while loop
+            obj.main_trigger = 0;
+            obj.tmain0 = [];
+            obj.trep0 = [];
+            obj.frames_shown = 0;
+            
+        end		% constructor
         
 		
 
         function Run_PhaseLoop_Rep( obj )
             
             not_done = 1;
-            te = 0; 
             delta_t = 0;
             local_t0 = mglGetSecs;
             te_last = 0;

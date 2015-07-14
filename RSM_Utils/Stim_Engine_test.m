@@ -178,7 +178,11 @@ for repeat_counter = 1:n_repeats
         
     end % all pending stimuli
     
-    
+    % reset screen coordinates
+    mglScreenCoordinates();
+    mglClearScreen( exp_obj.monitor.backgrndcolor );
+    mglFlush();
+
     exp_obj.stimulus = exp_obj.pending_stimuli{1}; % set it to 1 to start the new repeat (if requested)
     
     % could get a time stamp for the entire repeat here

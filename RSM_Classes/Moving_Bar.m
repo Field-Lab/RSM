@@ -13,50 +13,44 @@ classdef	Moving_Bar < handle
 
     properties
         
-        stim_name
+        % colors
+        color
+        backgrndcolor
+        
+        interval
+        direction
+        
+        % size
+        bar_width
+        x_start
+        y_start
+        x_delta
+        y_delta
+        
+        frames
+        
+        % key, trigger, repeats
+        wait_trigger
+        wait_key
+        n_for_each_stim
+        n_repeats
+        
+        % initialized
 
         run_date_time
         run_time_total
-        
+        run_duration
+        stim_update_freq
         main_trigger
         tmain0
-        
-        rep_trigger
-        trep0
-
-        run_duration
-        stim_update_freq               
-        
-        run_script
-        
-        color
-        backgrndcolor
-       
-        bar_width
-        bar_height
-        
-        x_start
-        x_end
-        y_start
-        y_end
-   
-        x_delta
-        y_delta
-        frames
-
-        wait_trigger
-        wait_key
-        
-        n_for_each_stim
-        
-        n_repeats
         frames_shown
-        
-        direction
-        interval
-	
+
 	end			% properties block
 	
+    properties(Constant)
+            stim_name = 'Moving_Bar';
+            run_script = 'Run_Bar_Rep( exp_obj.stimulus );';
+    end
 	
 	
 	methods
@@ -67,8 +61,8 @@ classdef	Moving_Bar < handle
             
             %%%%%  check if all user-defined fields exist  %%%%%
             
-            user_fields = {'bar_width','rgb', 'interval','direction','delta',...
-                'wait_trigger', 'wait_key', 'n_for_each_stim'};
+            user_fields = {'rgb', 'back_rgb', 'interval', 'bar_width',...
+                'direction','delta', 'wait_trigger', 'wait_key', 'n_for_each_stim', 'n_repeats'};
             missed_fields=[];
             for i=1:length(user_fields)
                 if ~isfield(stimuli,user_fields{i})
@@ -81,18 +75,22 @@ classdef	Moving_Bar < handle
                 end
                 return
             end
+
+            % colors
+            obj.color = stimuli.rgb';
+            obj.color = Color_Test( obj.color ); 
+            obj.backgrndcolor = stimuli.back_rgb';
+            obj.backgrndcolor = Color_Test( obj.backgrndcolor );
             
+            % interval
+            obj.interval = stimuli.interval;
+           
+            % direction
+            obj.direction = stimuli.direction;
+            
+            % width and length
             obj.bar_width = stimuli.bar_width;
             
-            obj.color = stimuli.rgb';
-            obj.color = Color_Test( obj.color );
-            
-            obj.interval = stimuli.interval;
-            
-            obj.n_for_each_stim = stimuli.n_for_each_stim;
-
-            
-            obj.direction = stimuli.direction;
             L = 3000; % Length of the bar, the idea of making this number large is to ensure that it covers the whole display.
             if stimuli.direction >= 0 && stimuli.direction < 90
                 r0 = [0, display.height]; % coordinates of one display corner.
@@ -115,7 +113,7 @@ classdef	Moving_Bar < handle
                 obj.y_start = [0; -stimuli.bar_width; -stimuli.bar_width; 0];
                 [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), (stimuli.direction-270)*pi/180);
             else
-                fprintf('\t RSM ERROR: invalid direction. Please define valid direction value and try again. \n');
+                fprintf('\t RSM ERROR: direction out of bounds \n');
                 return
             end
             obj.x_start = obj.x_start';
@@ -137,35 +135,21 @@ classdef	Moving_Bar < handle
                     obj.x_delta = 0;
                     obj.frames = (sqrt(display.width^2+display.height^2) + stimuli.bar_width)/stimuli.delta + stimuli.interval;
             end
-
-            % Note: color is rgb vector in [0-1] format, vertical vect for mglQuad  
-            obj.backgrndcolor = stimuli.back_rgb';
-            obj.backgrndcolor = Color_Test( obj.backgrndcolor );
             
+            % key, trigger, repeats
             obj.wait_trigger = stimuli.wait_trigger;                            
             obj.wait_key = stimuli.wait_key;
+            obj.n_repeats = stimuli.n_repeats;
+            obj.n_for_each_stim = stimuli.n_for_each_stim;
  
-          
-            % The following setup values are not under direct user control
-            % via the setup script
-
-            obj.stim_name = 'Moving_Bar';
-
+            %%%%%  Simply initialized  %%%%%
+            
             obj.run_date_time = [];
             obj.run_time_total = [];
-            
             obj.run_duration = [];      % By setting this to empty we indicate we switch to end condition being a fixed number of reps 
             obj.stim_update_freq = []; % By setting this to empty we remove artificial delay in main execution while loop
-            
             obj.main_trigger = 0;        
             obj.tmain0 = [];
-            
-            obj.rep_trigger = 0;        
-            obj.trep0 = [];
-            
-            obj.run_script = 'Run_Bar_Rep( exp_obj.stimulus );';
-            
-            obj.n_repeats = stimuli.n_repeats;
             obj.frames_shown = 0;
 
 		end		% constructor 

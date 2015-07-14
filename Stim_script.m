@@ -103,65 +103,39 @@ clear_pending_stim
 
 stimulus = [];
 stimulus.type = 'MB';
-stimulus.num_reps = 1;
 
 stimulus.back_rgb = [0.5, 0.5, 0.5];
 stimulus.rgb = [1, 1, 1];
 stimulus.rgb = stimulus.rgb - stimulus.back_rgb;
 stimulus.bar_width = [120];
-stimulus.direction = [0 45 90];% 135 180 225 270 315];
+stimulus.direction = [0 45 ]; %90 135 180 225 270 315];
 stimulus.delta = [5];  % pixel edge length/frame    
 stimulus.interval = 0; %frame
 stimulus.wait_trigger = 0;
 stimulus.wait_key = 0;
 stimulus.n_for_each_stim = 2; % how many times each stim (bar) will be shown in randomized sequence
-stimulus.n_repeats = 2; % how many identical sequences will be shown
+stimulus.n_repeats = 1; % how many identical sequences will be shown
 
 run_stimulus(display, stimulus);
 clear stimulus;
+
 
 %% Moving Grating
 %------------------------------------------------------------------------------
 %
-fprintf('\n\n<strong> Moving Grating. </strong>\n');
+fprintf('\n\n<strong> Grating. </strong>\n');
 %
 %------------------------------------------------------------------------------
 clear_pending_stim
 stimulus = [];
-stimulus.type = 'MG';
-stimulus.subtype = 'sine'; % sine or square
-stimulus.back_rgb = [0, 0, 0];
-stimulus.rgb = [1.0, 1.0, 1.0];
-stimulus.rgb = stimulus.rgb - stimulus.back_rgb;
-stimulus.phase0 = 0; 
-stimulus.temporal_period = [1];  % sec
-stimulus.spatial_period = [60];  % frame
-stimulus.direction = [0 45 90 135];% 180 225 270 315];       % Convention 0 deg is 3 oclock
-stimulus.frames = 120;  
-stimulus.interval = 0; %Sec
-stimulus.wait_trigger = 0;
-stimulus.wait_key = 0;
-stimulus.n_for_each_stim = 2; % how many times each stim (bar) will be shown in randomized sequence
-stimulus.n_repeats = 2; % how many identical sequences will be shown
-
-
-run_stimulus(display, stimulus);
-clear stimulus;
-
-
-%% Counterphase Grating
-
-fprintf('\n\n<strong> Counterphase Grating. </strong>\n');
-
-clear_pending_stim
-stimulus = [];
-stimulus.type = 'CG'; 
+stimulus.type = 'MG'; % MG for moving grating, CG for counterphase grating
+stimulus.subtype = 'sine'; % sine or square - only matters for MG (do we want it for CG?)
 
 % these are always required
 stimulus.back_rgb = [0.0, 0.0, 0.0];
 stimulus.n_for_each_stim = 1; % how many random sequences will be created
-stimulus.n_repeats = 2; % how many identical sequences will be shown
-stimulus.interval = 2; % blank screen between gratings, seconds
+stimulus.n_repeats = 1; % how many identical sequences will be shown
+stimulus.interval = 1; % blank screen between gratings, seconds
 stimulus.wait_trigger = 0;
 stimulus.wait_key = 0;
 
@@ -171,12 +145,17 @@ stimulus.rgb = [1.0, 1.0, 1.0];
 stimulus.phase0 = 0; 
 stimulus.temporal_period = 1;  
 stimulus.spatial_period = 60;
-stimulus.direction = [0 45];
-stimulus.frames = 30; % presentation of each grating, frames  
+stimulus.direction = [45];
+stimulus.frames = 90; % presentation of each grating, frames 
+
 
 stimulus.rgb = stimulus.rgb - stimulus.back_rgb;
+
+
 run_stimulus(display, stimulus);
 clear stimulus;
+
+
 
 
 %% Random Noise : Binary
@@ -347,3 +326,75 @@ Stop_RSM
 
 
 
+
+
+
+
+%% Backups
+
+
+
+%% Moving Grating
+%------------------------------------------------------------------------------
+%
+fprintf('\n\n<strong> Moving Grating. </strong>\n');
+%
+%------------------------------------------------------------------------------
+clear_pending_stim
+stimulus = [];
+stimulus.type = 'MG';
+stimulus.subtype = 'sine'; % sine or square
+
+% these are always required
+stimulus.back_rgb = [0.0, 0.0, 0.0];
+stimulus.n_for_each_stim = 1; % how many random sequences will be created
+stimulus.n_repeats = 1; % how many identical sequences will be shown
+stimulus.interval = 1; % blank screen between gratings, seconds
+stimulus.wait_trigger = 0;
+stimulus.wait_key = 0;
+
+% either define here or in S file
+% stimulus.sfile_name = ; % don't have one
+stimulus.rgb = [1.0, 1.0, 1.0];
+stimulus.phase0 = 0; 
+stimulus.temporal_period = 1;  
+stimulus.spatial_period = 60;
+stimulus.direction = [0 45];
+stimulus.frames = 90; % presentation of each grating, frames 
+
+
+stimulus.rgb = stimulus.rgb - stimulus.back_rgb;
+
+
+run_stimulus(display, stimulus);
+clear stimulus;
+
+
+%% Counterphase Grating
+
+fprintf('\n\n<strong> Counterphase Grating. </strong>\n');
+
+clear_pending_stim
+stimulus = [];
+stimulus.type = 'CG'; 
+
+% these are always required
+stimulus.back_rgb = [0.0, 0.0, 0.0];
+stimulus.n_for_each_stim = 1; % how many random sequences will be created
+stimulus.n_repeats = 1; % how many identical sequences will be shown
+stimulus.interval = 1; % blank screen between gratings, seconds
+stimulus.wait_trigger = 0;
+stimulus.wait_key = 0;
+
+% either define here or in S file
+% stimulus.sfile_name = ; % don't have one
+stimulus.rgb = [1.0, 1.0, 1.0];
+stimulus.phase0 = 0; 
+stimulus.temporal_period = 1;  
+stimulus.spatial_period = 60;
+stimulus.direction = [0 45];
+stimulus.frames = 90; % presentation of each grating, frames  
+
+stimulus.rgb = stimulus.rgb - stimulus.back_rgb;
+run_stimulus(display, stimulus);
+clear stimulus;

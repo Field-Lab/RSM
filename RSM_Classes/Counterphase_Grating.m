@@ -1,6 +1,5 @@
 classdef	Counterphase_Grating < handle
-    % Focus_Squares: Presents simple quad-pattern for aid in stimulus focusing
-    %
+
     %        $Id: NAME VER_ID DATA-TIME vinje $
     %      usage: NAME(Args)
     %         by: william vinje
@@ -68,8 +67,6 @@ classdef	Counterphase_Grating < handle
             stim_name = 'Counterphase_Grating';
             run_script = 'Run_CounterPhaseLoop_Rep( exp_obj.stimulus );';
     end
-    
-    
     
     methods
         
@@ -175,7 +172,7 @@ classdef	Counterphase_Grating < handle
                 elseif (direction >= 90 && direction < 180) || (direction >= 270 && direction < 360) 
                     polarity_sign = -1;
                 else
-                    fprintf('\t RSM ERROR: direction values out of bounds \n');
+                    fprintf('\t RSM ERROR: direction out of bounds \n');
                     return
                 end
                 obj.phase_velocity = polarity_sign * obj.phase_velocity;
