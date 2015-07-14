@@ -9,11 +9,11 @@ if (strcmp(stim_in.type, 'MG') || strcmp(stim_in.type, 'CG'))
     if (isfield(stim_in, 'temporal_period'))
         if (isfield(stim_in, 'spatial_period'))
             if (isfield(stim_in, 'direction'))
-                if (isfield(stim_in, 'repeats'))
+                if (isfield(stim_in, 'n_for_each_stim'))
                     tp = stim_in.temporal_period;
                     sp = stim_in.spatial_period;
                     dr = stim_in.direction;
-                    rp = stim_in.repeats;
+                    rp = stim_in.n_for_each_stim;
                 else
                    fprintf('\t RSM ERROR: repeats not recognized. Please define repeats and try again. \n');
                    return
@@ -54,13 +54,13 @@ elseif strcmp(stim_in.type, 'MB')
     if (isfield(stim_in, 'delta'))
         if (isfield(stim_in, 'bar_width'))
             if (isfield(stim_in, 'direction'))
-                if (isfield(stim_in, 'repeats'))
+                if (isfield(stim_in, 'n_for_each_stim'))
                     tp = stim_in.delta;
                     sp = stim_in.bar_width;
                     dr = stim_in.direction;
-                    rp = stim_in.repeats;
+                    rp = stim_in.n_for_each_stim;
                 else
-                   fprintf('\t RSM ERROR: repeats not recognized. Please define repeats and try again. \n');
+                   fprintf('\t RSM ERROR: n_for_each_stim not recognized. Please define repeats and try again. \n');
                    return
                 end
             else

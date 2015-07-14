@@ -18,7 +18,7 @@
 
 function[ exp_session ] = Setup_Rig
 
-home_dir_base = '/Users/acquisition/Documents/MATLAB/RSM';
+home_dir_base = 'RSM';
 
 % Setup for experimental session constructor
 
@@ -62,26 +62,26 @@ if ( ret ~= 0 ),
    end
 end
 
-    disp('EJC: hardcoded host and rig in Setup_Rig.m');
-    exp_session.host_name = 'alligator';
-    exp_session.rig_ID = 'A';
-   
-    disp('EJC: hardcoded monitor path in Setup_Rig.m');
-    
-    monitor_load_fn = cat(2, exp_session.monitor_dir_name, '/', exp_session.monitor_filename);
-    
-    monitor_obj = load( monitor_load_fn, 'obj' );
-    
+disp('EJC: hardcoded host and rig in Setup_Rig.m');
+exp_session.host_name = 'alligator';
+exp_session.rig_ID = 'A';
 
-    if (isempty( monitor_obj ))
-        disp('ERROR: No valid monitor_description loaded');
-        keyboard
-        
-    else
-        exp_session.monitor = monitor_obj;
-        
-    end
+disp('EJC: hardcoded monitor path in Setup_Rig.m');
+
+monitor_load_fn = cat(2, exp_session.monitor_dir_name, '/', exp_session.monitor_filename);
+
+monitor_obj = load( monitor_load_fn, 'obj' );
+
+
+if (isempty( monitor_obj ))
+    disp('ERROR: No valid monitor_description loaded');
+    keyboard
     
+else
+    exp_session.monitor = monitor_obj;
+    
+end
+
 % This option is for beta testing and debugging. Eventually final versions
 % willhave only one choise of RNG generator
 exp_session.mex_rng_flag = 1;       % 1 => mex file based RNG / 0 => Matlab randstream

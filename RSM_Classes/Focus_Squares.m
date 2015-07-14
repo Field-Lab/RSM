@@ -56,8 +56,8 @@ classdef	Focus_Squares < handle
         sh
 
         backgrndcolor
-        repeat_num
-
+        n_repeats
+        frames_shown
         
   
 	
@@ -114,7 +114,8 @@ classdef	Focus_Squares < handle
    
             
             obj.backgrndcolor = exp_obj.monitor.backgrndcolor;
-            obj.repeat_num = 0;
+            obj.n_repeats = 1;
+            obj.frames_shown = 0;
 		end		% constructor 
 		
 

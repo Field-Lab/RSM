@@ -11,7 +11,7 @@ function[ exp_obj ] = qS_RSM( varargin )
 %  copyright: (c) Date William Vinje, Eduardo Jose Chichilnisky (GPL see RSM/COPYING)
 % 
 if (nargin < 2)
-    fprintf('\t RSM ERROR: Not enough arguements for qS_RSM. \n');
+    fprintf('\t RSM ERROR: Not enough arguments for qS_RSM. \n');
     return
 end
 
@@ -66,7 +66,7 @@ switch parsed_S.spec.type,
         
         if (nargin == 3)
             stimuli.map_file_name = varargin{3};
-            stimuli.map_file_path = './RSM_Map_Vault/';
+            stimuli.map_file_path = 'RSM/RSM_Map_Vault';
         elseif (nargin == 4)
             stimuli.map_file_name = varargin{3};
             stimuli.sfile_path = varargin{4};

@@ -13,7 +13,7 @@ function[ exp_obj ] = q_RSM( exp_obj, stimulus )
 
 
 % Check for valid exp_obj
-if ( ~exist('exp_obj') )
+if  ~exist('exp_obj', 'var') 
     fprintf('\t RSM ERROR: No experimental session object is present. Please run "Start_RSM". \n');
     return
 end
@@ -41,15 +41,25 @@ end
   
 
 
-if (~isfield(stimulus,'wait_key'))
+if ~isfield(stimulus,'wait_key')
        stimulus.wait_key = 0;
 end
 
 
-if (isfield(stimulus,'trigger_interval'))
-
+if isfield(stimulus,'trigger_interval')
     exp_obj.dio_config.numframes_per_pulse = stimulus.trigger_interval;
+end
 
+% check if S file is specified; then parse
+% enter stealth mode 1?
+if isfield(stimulus, 'sfile_name')
+    S_filename_withpath = fullfile(exp_obj.map_path, stimulus.sfile_name);
+    stimulus.parsed_S = read_stim_lisp_output_hack(S_filename_withpath);
+    exp_obj.stealth_flag = 1; % All S files operate in stealthed mode 
+    fprintf('\t RSM entering stealth mode 1. \n');
+    fprintf('\t To reset, enter: "RSM_Global.stealth_flag = 0" after run completes.\n');
+else
+    exp_obj.stealth_flag = 0;
 end
     
     
@@ -60,18 +70,25 @@ switch stimulus.type
        exp_obj.pending_stimuli{num_pending + 1} = Focus_Squares(stimulus, exp_obj);
   
        
-       
-    case 'SC',  % solid color
-        stimulus.control_flag = 4;
-        exp_obj.pending_stimuli{num_pending + 1} = PulseCombo(stimulus, exp_obj);
-      
+    case 'PL',   % pulse for cone isolation
+
+        stimulus.control_flag = 1;
         
-    case 'FC',  % flashing color
+        if isfield(stimulus,'parsed_S')
+            trial_num_total = length(stimulus.parsed_S.pulses);
+            fprintf('\t Constructing stimuli from S-file. \n');
+        else
+            trial_num_total = 1;
+        end
+        
+        for i = 1:trial_num_total
+            stimulus.index = i; % if lut is used (not S-file, this field is obsolete)
+            exp_obj.pending_stimuli{num_pending + i} = PulseCombo(stimulus, exp_obj);
+        end
+        
+        
+    case 'FPA',  % full-field pulses any sequence
         stimulus.control_flag = 3;
-        exp_obj.pending_stimuli{num_pending + 1} = PulseCombo(stimulus, exp_obj);
-        
-    case 'FP',  % full-field pulses
-        stimulus.control_flag = 5;
         exp_obj.pending_stimuli{num_pending + 1} = PulseCombo(stimulus, exp_obj);
         
         
@@ -134,12 +151,7 @@ switch stimulus.type
     case 'RM',   % raw movie
         exp_obj.pending_stimuli{num_pending + 1} = Raw_Movie( stimulus, exp_obj );
 
-        
-    case 'PL',   % pulse for cone isolation
-        stimulus.control_flag = 1;
-        exp_obj.pending_stimuli{num_pending + 1} = PulseCombo( stimulus, exp_obj );
-
-        
+       
     otherwise,
       fprintf('\t RSM ERROR: Stim class variable not recognized. Please assign different stim class variable and try again. \n');
       return

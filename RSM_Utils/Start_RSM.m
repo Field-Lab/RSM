@@ -30,7 +30,7 @@ clear exp_setup;
 RSM_GLOBAL.RSM_ver = 1.0;
 
 % Before we begin in earnest we change directories to the home directory
-cd( RSM_GLOBAL.home_dir_name );
+% cd( RSM_GLOBAL.home_dir_name ); % ATH commented out
 
 
 % Next we open the stim window in which stimulus will display

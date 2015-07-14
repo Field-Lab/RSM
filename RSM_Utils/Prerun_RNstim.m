@@ -37,7 +37,7 @@ stimulus.stop_frame = [];
 stimulus.n_repeats = 1;
 
 [ prerun_obj ] = q_RSM( prerun_obj, stimulus );
-[prerun_obj] = run_RSM( prerun_obj );
+[prerun_obj] = Stim_Engine_test( prerun_obj );
 
 % Conducting pre-run of RN stim 
 fprintf('Silent prerun of RN complete.\n');

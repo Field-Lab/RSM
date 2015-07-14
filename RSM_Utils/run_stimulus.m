@@ -12,22 +12,16 @@ RSM_GLOBAL.monitor = monitor_description;
 % decide: is a structure or a cell array
 if ( isstruct( stim_in ) )
     
-    if (isfield( stim_in, 'control_flag'))
-        if (stim_in.control_flag == 2)
-            % This case is used for Sfile constructed stimuli
-            RSM_GLOBAL= qS_RSM(RSM_GLOBAL, stim_in.sfile_name, stim_in.mapfile);
-            RSM_GLOBAL = run_RSM(RSM_GLOBAL);
-        else
-            % single case use old q_RSM and run_RSM utils.
-            RSM_GLOBAL = q_RSM(RSM_GLOBAL, stim_in);
-            RSM_GLOBAL = run_RSM(RSM_GLOBAL);
-        end
-    else 
-        % single case use old q_RSM and run_RSM utils.
-        RSM_GLOBAL = q_RSM(RSM_GLOBAL, stim_in);
-        RSM_GLOBAL = run_RSM(RSM_GLOBAL);
+    % qS_RSM is redundant now for cone-specific S-files; there is still
+    % reversing sine S-file parsing in there. Consult with EJ if there are
+    % any other S-files needed to be implemented.
+%     RSM_GLOBAL= qS_RSM(RSM_GLOBAL, stim_in.sfile_name, stim_in.map_file_name); 
+     
+    % single case use old q_RSM.
+    RSM_GLOBAL = q_RSM(RSM_GLOBAL, stim_in);
+    RSM_GLOBAL = Stim_Engine_test(RSM_GLOBAL);
+%     RSM_GLOBAL = run_RSM(RSM_GLOBAL);
     
-    end
 elseif ( iscell( stim_in ) )
     % iterate through cell array and use old q_RSM and run_RSM utils.
     num_cells = length(stim_CA);

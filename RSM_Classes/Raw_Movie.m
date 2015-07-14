@@ -88,6 +88,25 @@ classdef	Raw_Movie < handle
 		
         % Constructor method
         function[obj] = Raw_Movie( stimuli, exp_obj )
+            
+            %%%%%  check if all user-defined fields exist  %%%%%
+            
+            user_fields = {'stop_frame','flip_flag', 'reverse_flag','first_frame','last_frame',...
+            'fn','interval','preload'};
+            missed_fields=[];
+            for i=1:length(user_fields)
+                if ~isfield(stimuli,user_fields{i})
+                    missed_fields = [missed_fields i];
+                end
+            end
+            if ~isempty(missed_fields)
+                for i = missed_fields
+                    fprintf(['\t RSM ERROR: ',user_fields{i},' is missing. Please define and try again. \n']);
+                end
+                return
+            end
+            
+            %%%%%  These are copied from stimuli and exp_obj fields  %%%%%
 
             if (isfield(stimuli,'x_cen_offset'))
                 if (abs(stimuli.x_cen_offset) > (exp_obj.monitor.width / 2))
@@ -115,73 +134,19 @@ classdef	Raw_Movie < handle
         
             [ obj.sync_pulse ] = Sync_Setup_Util( stimuli, exp_obj );
 
-        
-            if (isfield(stimuli,'stop_frame'))
-                obj.stop_frame = stimuli.stop_frame;        
-            else
-                fprintf('\t RSM ERROR: last_frame not recognized. Please define last_frame value and try again. \n');
-                return
-            end
+            obj.stop_frame = stimuli.stop_frame;
         
             
-            obj.n_repeats = 1;
-
-          if (isfield(stimuli,'flip_flag'))
+            obj.n_repeats = stimuli.n_repeats;
             
-                if (isfield(stimuli,'reverse_flag'))
-
-                    if (isfield(stimuli,'first_frame'))
-
-                        if (isfield(stimuli,'last_frame'))
-
-                            obj.flip_flag = stimuli.flip_flag;
-                            obj.reverse_flag = stimuli.reverse_flag;
-                            obj.first_frame = stimuli.first_frame;
-                            obj.last_frame = stimuli.last_frame;
-                            
-                        else
-                            obj.last_frame = [];
-                            fprintf('\t RSM ERROR: "Stop_frame" not recognized. Using autodetect. \n');
-                            return            
-                        end 
-                    else
-                        obj.first_frame = 1;
-                        fprintf('\t RSM ERROR: "Start_frame" not recognized. Using default of 1. \n');
-                        return
-                    end             
-                else
-                    obj.reverse_flag = 0;
-                    fprintf('\t RSM ERROR: "reverse_flag" not recognized. Using default value of 0 (forward display). \n');
-                    return
-                end  
-            else
-                obj.flip_flag = 1;
-                fprintf('\t RSM ERROR: "flip_flag" not recognized. Using default value of 1. \n');
-                return
-            end
-
-
-            if (isfield(stimuli,'fn'))
+            obj.flip_flag = stimuli.flip_flag;
+            obj.reverse_flag = stimuli.reverse_flag;
+            obj.first_frame = stimuli.first_frame;
+            obj.last_frame = stimuli.last_frame;
             
-                if (isfield(stimuli,'interval'))
-
-                    if (isfield(stimuli,'preload'))
-      
-                        nopath_movie_filename = stimuli.fn;
-                        obj.stim_update_freq = stimuli.interval;
-                        
-                    else
-                        fprintf('\t RSM ERROR: pre-load movie flag not recognized. Please define preload value and try again. \n');
-                        return
-                    end             
-                else
-                    fprintf('\t RSM ERROR: stimulus update frequency ("interval") not recognized. Please define interval value and try again. \n');
-                    return
-                end  
-            else
-                fprintf('\t RSM ERROR: filename ("fn") not recognized. Please define fn value and try again. \n');
-                return
-            end
+            nopath_movie_filename = stimuli.fn;
+            obj.stim_update_freq = stimuli.interval;
+            
 
 
             if (isfield(stimuli,'movie_path'))
@@ -195,7 +160,7 @@ classdef	Raw_Movie < handle
             obj.wait_trigger = stimuli.wait_trigger;                            
             obj.wait_key = stimuli.wait_key;
 
-            obj.backgrndcolor = [stimuli.back_rgb(1); stimuli.back_rgb(2); stimuli.back_rgb(3)];
+            obj.backgrndcolor = stimuli.back_rgb';
             obj.backgrndcolor = Color_Test( obj.backgrndcolor );
             
             obj.stim_name = 'Raw_Movie';
@@ -215,15 +180,13 @@ classdef	Raw_Movie < handle
             
             %---------------------
             
-            
-            
             obj.movie_filename = cat(2, obj.movie_path, '/', nopath_movie_filename);
             
             obj.fid=fopen(obj.movie_filename,'r');
 
-            temp = fscanf(obj.fid, '%s', 1);                     % scan the file for a string
+            temp = fscanf(obj.fid, '%s', 1);% scan the file for a string
 
-            if ~isequal( temp, 'header-size' )                % check that string is 'header-size'
+            if ~isequal( temp, 'header-size' )% check that string is 'header-size'
                 fprintf('\t FATAL ERROR in raw movie read: no header-size.');
                 keyboard
             else
@@ -285,7 +248,7 @@ classdef	Raw_Movie < handle
             blank(4,:,:) = ones(1, obj.span_width, obj.span_height, 'uint8') * 255;
             obj.blank_frame = blank;
             
-            obj.r_stream = -999; % This is for signalling purposes. This tells Run_On_The_Fly to use Make_Frame script
+            obj.r_stream = -999; % This is for signalling purposes. This tells Run_OnTheFly to use Make_Frame script
             num_frames_planned = obj.n_frames;
             obj.timestamp_record = zeros(1,num_frames_planned);
      

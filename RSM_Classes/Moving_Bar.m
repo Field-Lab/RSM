@@ -39,18 +39,18 @@ classdef	Moving_Bar < handle
         x_end
         y_start
         y_end
-        
-        num_reps    % this controls how many reps we want to run
-        
-        reps_run    % this records how many bar passes have already occured
-        
+   
         x_delta
         y_delta
         frames
 
         wait_trigger
         wait_key
-        repeat_num
+        
+        n_for_each_stim
+        
+        n_repeats
+        frames_shown
         
         direction
         interval
@@ -65,96 +65,81 @@ classdef	Moving_Bar < handle
         function[obj] = Moving_Bar( stimuli )
             global display
             
-            if (isfield(stimuli,'bar_width'))
-                obj.bar_width = stimuli.bar_width;
-            else
-                fprintf('\t RSM ERROR: bar_width not recognized. Please define bar_width value and try again. \n');
-                return
-            end  
-        
-            if (isfield(stimuli,'rgb'))
-               obj.color = [stimuli.rgb(1); stimuli.rgb(2); stimuli.rgb(3)];
-               obj.color = Color_Test( obj.color );
-            else
-                fprintf('\t RSM ERROR: rgb not recognized. Please define rg value and try again. \n');
-                return
-            end
-        
-        
-            if (isfield(stimuli,'num_reps'))
-                obj.num_reps = stimuli.num_reps;
-            else
-                fprintf('\t RSM ERROR: number of repetitions not recognized. Please define num_reps value and try again. \n');
-                return
-            end
+            %%%%%  check if all user-defined fields exist  %%%%%
             
-            if (isfield(stimuli,'interval'))
-                obj.interval = stimuli.interval;
-            else
-                fprintf('\t RSM ERROR: interval not recognized. Please define interval value and try again. \n');
-                return
-            end
-            
-            if (isfield(stimuli,'direction'))
-                obj.direction = stimuli.direction;
-                L = 3000; % Length of the bar, the idea of making this number large is to ensure that it covers the whole display. 
-                if stimuli.direction >= 0 && stimuli.direction < 90
-                    r0 = [0, display.height]; % coordinates of one display corner.
-                    obj.x_start = [0; 0; stimuli.bar_width; stimuli.bar_width]; % bar was first set to be either vertical or horizontal (base on moving direction)
-                    obj.y_start = [L; -L; -L; L];
-                    [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), stimuli.direction*pi/180); % then the bar will be rotated around a corner of display by a certain degree (base on moving direction)
-                elseif stimuli.direction >= 90 && stimuli.direction < 180
-                    r0 = [display.width, display.height];
-                    obj.x_start = [-L; -L; L; L];
-                    obj.y_start = [display.height-stimuli.bar_width; display.height; display.height; display.height-stimuli.bar_width];
-                    [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), (stimuli.direction-90)*pi/180);
-                elseif stimuli.direction >= 180 && stimuli.direction < 270
-                    r0 = [display.width, 0];
-                    obj.x_start = [display.width-stimuli.bar_width; display.width-stimuli.bar_width; display.width; display.width];
-                    obj.y_start = [L; -L; -L; L];
-                    [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), (stimuli.direction-180)*pi/180);
-                elseif stimuli.direction >= 270 && stimuli.direction < 360
-                    r0 = [0, 0];
-                    obj.x_start = [-L; -L; L; L];
-                    obj.y_start = [0; stimuli.bar_width; stimuli.bar_width; 0]; 
-                    [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), (stimuli.direction-270)*pi/180);
-                else
-                    fprintf('\t RSM ERROR: invalid direction. Please define valid direction value and try again. \n');
-                    return
+            user_fields = {'bar_width','rgb', 'interval','direction','delta',...
+                'wait_trigger', 'wait_key', 'n_for_each_stim'};
+            missed_fields=[];
+            for i=1:length(user_fields)
+                if ~isfield(stimuli,user_fields{i})
+                    missed_fields = [missed_fields i];
                 end
-                obj.x_start = obj.x_start';
-                obj.y_start = obj.y_start';
-                
-                % make the bar moving either vertically or horizontally
-                % based on which distance is shorter
-                x_dis = (abs(tan(stimuli.direction*pi/180)*display.height)+display.width);
-                y_dis = (abs(display.width/tan(stimuli.direction*pi/180))+display.height);
-                [dis, I] = min([x_dis, y_dis]); 
-                if (isfield(stimuli,'delta'))
-                    switch I
-                    case 1                        
-                        obj.x_delta = stimuli.delta/cos(stimuli.direction*pi/180);
-                        obj.y_delta = 0;
-                        obj.frames = abs(dis/obj.x_delta) + stimuli.interval;
-                    case 2
-                        obj.y_delta = stimuli.delta/sin(stimuli.direction*pi/180);
-                        obj.x_delta = 0;
-                        obj.frames = abs(dis/obj.y_delta) + stimuli.interval;
-                    end
-
-                else
-                    fprintf('\t RSM ERROR: delta recognized. Please define delta value and try again. \n');
-                    return
-                end  
-                
-                
-            else
-                fprintf('\t RSM ERROR: direction not recognized. Please define direction value and try again. \n');
+            end
+            if ~isempty(missed_fields)
+                for i = missed_fields
+                    fprintf(['\t RSM ERROR: ',user_fields{i},' is missing. Please define and try again. \n']);
+                end
                 return
+            end
+            
+            obj.bar_width = stimuli.bar_width;
+            
+            obj.color = stimuli.rgb';
+            obj.color = Color_Test( obj.color );
+            
+            obj.interval = stimuli.interval;
+            
+            obj.n_for_each_stim = stimuli.n_for_each_stim;
+
+            
+            obj.direction = stimuli.direction;
+            L = 3000; % Length of the bar, the idea of making this number large is to ensure that it covers the whole display.
+            if stimuli.direction >= 0 && stimuli.direction < 90
+                r0 = [0, display.height]; % coordinates of one display corner.
+                obj.x_start = [0; 0; -stimuli.bar_width; -stimuli.bar_width]; % bar was first set to be either vertical or horizontal (base on moving direction)
+                obj.y_start = [L; -L; -L; L];
+                [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), stimuli.direction*pi/180); % then the bar will be rotated around a corner of display by a certain degree (base on moving direction)
+            elseif stimuli.direction >= 90 && stimuli.direction < 180
+                r0 = [display.width, display.height];
+                obj.x_start = [-L; -L; L; L];
+                obj.y_start = [display.height+stimuli.bar_width; display.height; display.height; display.height+stimuli.bar_width];
+                [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), (stimuli.direction-90)*pi/180);
+            elseif stimuli.direction >= 180 && stimuli.direction < 270
+                r0 = [display.width, 0];
+                obj.x_start = [display.width+stimuli.bar_width; display.width+stimuli.bar_width; display.width; display.width];
+                obj.y_start = [L; -L; -L; L];
+                [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), (stimuli.direction-180)*pi/180);
+            elseif stimuli.direction >= 270 && stimuli.direction < 360
+                r0 = [0, 0];
+                obj.x_start = [-L; -L; L; L];
+                obj.y_start = [0; -stimuli.bar_width; -stimuli.bar_width; 0];
+                [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), (stimuli.direction-270)*pi/180);
+            else
+                fprintf('\t RSM ERROR: invalid direction. Please define valid direction value and try again. \n');
+                return
+            end
+            obj.x_start = obj.x_start';
+            obj.y_start = obj.y_start';
+            
+            % make the bar moving either vertically or horizontally
+            % based on which distance is shorter
+            x_dis = (abs(tan(stimuli.direction*pi/180)*display.height)+display.width);
+            y_dis = (abs(display.width/tan(stimuli.direction*pi/180))+display.height);
+            [dis, I] = min([x_dis, y_dis]);
+            
+            switch I
+                case 1
+                    obj.x_delta = stimuli.delta/cos(stimuli.direction*pi/180);
+                    obj.y_delta = 0;
+                    obj.frames = (sqrt(display.width^2+display.height^2) + stimuli.bar_width)/stimuli.delta + stimuli.interval;
+                case 2
+                    obj.y_delta = stimuli.delta/sin(stimuli.direction*pi/180);
+                    obj.x_delta = 0;
+                    obj.frames = (sqrt(display.width^2+display.height^2) + stimuli.bar_width)/stimuli.delta + stimuli.interval;
             end
 
             % Note: color is rgb vector in [0-1] format, vertical vect for mglQuad  
-            obj.backgrndcolor = [stimuli.back_rgb(1); stimuli.back_rgb(2); stimuli.back_rgb(3)];
+            obj.backgrndcolor = stimuli.back_rgb';
             obj.backgrndcolor = Color_Test( obj.backgrndcolor );
             
             obj.wait_trigger = stimuli.wait_trigger;                            
@@ -180,9 +165,8 @@ classdef	Moving_Bar < handle
             
             obj.run_script = 'Run_Bar_Rep( exp_obj.stimulus );';
             
-            obj.reps_run = 0;
-            obj.repeat_num = 0;
-            
+            obj.n_repeats = stimuli.n_repeats;
+            obj.frames_shown = 0;
 
 		end		% constructor 
 		
@@ -192,6 +176,16 @@ classdef	Moving_Bar < handle
             
             x_new = obj.x_start;
             y_new = obj.y_start;
+            
+            % Draw the quad
+            mglClearScreen( obj.backgrndcolor ); 
+
+            new_color = obj.color + obj.backgrndcolor;
+            [ new_color ] = Color_Test( new_color );
+
+            mglQuad(x_new, y_new, new_color, 0);
+
+            mglFlush();
 
             % OK: Time to tell DAQ we are starting
             Pulse_DigOut_Channel;

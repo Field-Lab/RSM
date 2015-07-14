@@ -76,7 +76,6 @@ classdef	Random_Noise_CDF_LUT < handle
         stop_frame
         
         n_repeats
-        repeat_num 
         
         backgrndcolor
         
@@ -91,154 +90,76 @@ classdef	Random_Noise_CDF_LUT < handle
 	
 	methods
 		
-        function[obj] = Random_Noise_CDF_LUT( stimuli, exp_obj )
+        function[obj] = Random_Noise_CDF_LUT( stimuli, exp_obj )             
+ 
+            %%%%%  check if all user-defined fields exist  %%%%%
             
-            if (isfield(stimuli,'rgb'))
-                rgb_vect = [stimuli.rgb(1); stimuli.rgb(2); stimuli.rgb(3)];% Note: color is rgb vector in [0-1] format  
-                rgb_vect = Color_Test( rgb_vect );
-            else
-                fprintf('\t RSM ERROR: rgb not recognized. Please define rgb value and try again. \n');
+            user_fields = {'rgb','sigma','x_start', 'x_end','y_start','y_end',...
+            'stixel_width','stixel_height','field_width','field_height','stop_frame',...
+            'duration', 'seed', 'interval', 'wait_trigger', 'wait_key'};
+            missed_fields=[];
+            for i=1:length(user_fields)
+                if ~isfield(stimuli,user_fields{i})
+                    missed_fields = [missed_fields i];
+                end
+            end
+            if ~isempty(missed_fields)
+                for i = missed_fields
+                    fprintf(['\t RSM ERROR: ',user_fields{i},' is missing. Please define and try again. \n']);
+                end
                 return
             end
+            
+            %%%%%  These are copied from stimuli and exp_obj fields  %%%%%
+            
         
             % stimuli.sigma for Gaussian into units of grayscale (e.g. sigma 0.16 means that 3 sigmas just bumps into the gamut, which is ±0.5 ).
-     
-            if (isfield(stimuli,'sigma'))
-                obj.sigma = stimuli.sigma;        
-            else
-                fprintf('\t RSM ERROR: Gaussian gigma value not recognized. Please define sigma value and try again. \n');
-                return
-            end
- 
+            obj.sigma = stimuli.sigma;
             
+            rgb_vect = stimuli.rgb';% Note: color is rgb vector in [0-1] format
+            rgb_vect = Color_Test( rgb_vect );
             [ obj ] = Set_LUT(obj, rgb_vect);
-            
-            
-            if (isfield(stimuli,'x_start'))
-                if (isfield(stimuli,'x_end'))
-                
-                    % flip around if needed for proper ordering
-                    if (stimuli.x_start > stimuli.x_end)
-                        temp = stimuli.x_start;
-                        stimuli.x_end = temp;
-                        stimuli.x_start = stimuli.x_end;
-                        clear temp
-                    end
-            
-                else
-                    fprintf('\t RSM ERROR: x-end not recognized. Please define x_end value and try again. \n');
-                    return
-                end  
-            else
-                fprintf('\t RSM ERROR: x-start recognized. Please define x_start value and try again. \n');
-                return
-            end  
+ 
         
-        
-        
-            if (isfield(stimuli,'y_start'))
-                if (isfield(stimuli,'y_end'))
-                
-                    % flip around if needed for proper ordering
-                    if (stimuli.y_start > stimuli.y_end)
-                        temp = stimuli.y_start;
-                        stimuli.y_end = temp;
-                        stimuli.y_start = stimuli.y_end;
-                        clear temp
-                    end
-                    
-                    % STUB FOR FUTURE DEVELOPMENT
-            
-                else
-                    fprintf('\t RSM ERROR: y-end not recognized. Please define y_end value and try again. \n');
-                    return
-                end  
-            else
-                fprintf('\t RSM ERROR: y-start recognized. Please define y_start value and try again. \n');
-                return
-            end  
-        
-        
-            [ obj.x_cen_offset ] = Find_Cen_Offsets( stimuli.x_start, stimuli.x_end, exp_obj.monitor.width );
-        
-            [ obj.y_cen_offset ] = Find_Cen_Offsets( stimuli.y_start, stimuli.y_end, exp_obj.monitor.height );
+            % Offsets of the stimulus center pixel from the screen center
+            % pixel.
+            obj.x_cen_offset = Find_Cen_Offsets( stimuli.x_start, stimuli.x_end, exp_obj.monitor.width );
+            obj.y_cen_offset = Find_Cen_Offsets( stimuli.y_start, stimuli.y_end, exp_obj.monitor.height );
 
-
-            if (isfield(stimuli,'stixel_width'))
-                if (isfield(stimuli,'stixel_height'))
-                   if (isfield(stimuli,'field_width'))    
-                       if (isfield(stimuli,'field_height'))
-                           
-                           % Check for validity of stixel setup
-                            if ((stimuli.stixel_width * stimuli.field_width) > exp_obj.monitor.width) 
-                                fprintf('\t RSM ERROR: Stimulus width exceeds display width. Please redfine stixel_width and/or field_width and try again. \n');
-                                return
-                            end
-                            
-                            if ((stimuli.stixel_height * stimuli.field_height) > exp_obj.monitor.height) 
-                                fprintf('\t RSM ERROR: Stimulus height exceeds display height. Please redfine stixel_height and/or field_height and try again. \n');
-                                return
-                            end
-    
-                            obj.stixel_width = stimuli.stixel_width;            
-                            obj.stixel_height = stimuli.stixel_height;            
-                            obj.field_width = stimuli.field_width;
-                            obj.field_height = stimuli.field_height;
-                       
-                       else
-                           fprintf('\t RSM ERROR: height in stixels ("field_height") not recognized. Please define field_height and try again. \n');
-                           return
-                       end
-                   else
-                       fprintf('\t RSM ERROR: width in stixels ("field_width") not recognized. Please define field_width and try again. \n');
-                       return
-                   end
-                else
-                   fprintf('\t RSM ERROR: stixel height in pixels ("stixel_height") not recognized. Please define stixel_height value and try again. \n');
-                   return
-                end 
-            else
-                fprintf('\t RSM ERROR: stixel width in pixels ("stixel_width") not recognized. Please define stixel_width value and try again. \n');
+            obj.stixel_width = stimuli.stixel_width;
+            obj.stixel_height = stimuli.stixel_height;
+            obj.field_width = stimuli.field_width;
+            obj.field_height = stimuli.field_height;
+            
+            obj.span_width = obj.field_width * obj.stixel_width;
+            obj.span_height = obj.field_height * obj.stixel_height;
+            
+            % Check for validity of stixel setup
+            if obj.span_width ~= abs(stimuli.x_start-stimuli.x_end)
+                fprintf('\t RSM ERROR: Stimulus width (x) in stixels and pixels does not match \n');
                 return
             end
+            
+            if  obj.span_height ~= abs(stimuli.y_start-stimuli.y_end)
+                fprintf('\t RSM ERROR: Stimulus height (y) in stixels and pixels does not match \n');
+                return
+            end
+            
+
+                       
         
             
             [ obj.sync_pulse ] = Sync_Setup_Util( stimuli, exp_obj );
-
-        
-            if (isfield(stimuli,'stop_frame'))
-                obj.stop_frame = stimuli.stop_frame;        
-            else
-                fprintf('\t RSM ERROR: stop_frame not recognized. Please define stop_frame value and try again. \n');
-                return
-            end
-        
-            obj.n_repeats = 1;
-
-            if (isfield(stimuli,'duration'))
-                if (isfield(stimuli,'interval'))
-                    if (isfield(stimuli,'seed'))
-
-                            obj.run_duration = stimuli.duration;
-                            obj.stim_update_freq = stimuli.interval;
-                            obj.rng_init.state = stimuli.seed;
-                          
-                    else
-                           fprintf('\t RSM ERROR: rng seed value ("seed") not recognized. Please define seed and try again. \n');
-                           return
-                    end
-                else
-                    fprintf('\t RSM ERROR: stimulus update frequency ("interval") not recognized. Please define interval value and try again. \n');
-                    return
-                end 
-            else
-                fprintf('\t RSM ERROR: run duration value ("duration") not recognized. Please define duration value and try again. \n');
-                return
-            end
             
-                    
-              
-            obj.backgrndcolor = [stimuli.back_rgb(1); stimuli.back_rgb(2); stimuli.back_rgb(3)];
+            
+            obj.stop_frame = stimuli.stop_frame;
+            
+            obj.run_duration = stimuli.duration;
+            obj.stim_update_freq = stimuli.interval;
+            obj.rng_init.state = Init_RNG_JavaStyle(stimuli.seed);
+            obj.n_repeats = stimuli.n_repeats;
+                          
+            obj.backgrndcolor = stimuli.back_rgb';
             obj.backgrndcolor = Color_Test( obj.backgrndcolor );
             
             obj.frame_save = 0; % turning on frame save dramatically slows program. Turn on for debug only.         
@@ -265,10 +186,6 @@ classdef	Random_Noise_CDF_LUT < handle
             num_frames_planned = (obj.run_duration * ceil(exp_obj.monitor.screen_refresh_freq)) +1;  % +1 and ceil provide a "buffer factor" to eliminate worrys about exceeding array size
             obj.timestamp_record = zeros(obj.n_repeats,num_frames_planned);
             obj.frame_record = [];
-  
-           % These are pre-calculated once at construction
-            obj.span_width = obj.field_width * obj.stixel_width;
-            obj.span_height = obj.field_height * obj.stixel_height;
             
             blank = zeros(4, obj.field_width, obj.field_height, 'uint8');
             
@@ -277,7 +194,6 @@ classdef	Random_Noise_CDF_LUT < handle
            
             obj.r_stream = [];
             obj.frames_shown = 0;
-            obj.repeat_num = 0;
             obj.rerun_lim = 3;
             obj.rerun_num = 0;
             obj.saved_tex = [];
