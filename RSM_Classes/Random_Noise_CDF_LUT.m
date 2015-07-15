@@ -12,81 +12,66 @@ classdef	Random_Noise_CDF_LUT < handle
 
 	properties
         
-        stim_name
+        % user-defined
         
-        run_date_time
-        run_time_total
+        % sigma
+        sigma
         
-        main_trigger
-        tmain0
+        % color
+        LUT
+        backgrndcolor
+        cdf_vect
+        num_lut_levels
         
-        rep_trigger
-        trep0
-
-        run_duration
-        stim_update_freq                
-        
-        run_script
- 
- 
-        x_cen_offset
-        y_cen_offset
-        
+        % size
         field_width
         field_height
-        stixel_width
-        stixel_height
+        x_start
+        y_start
         span_width
         span_height
-
-        blank_frame
         
-        r_stream
-
-        make_frame_script
+        % duration, interval, seed
+        run_duration
+        stim_update_freq
+        rng_init
         
-        rng_init        
-                
-        timestamp_record
-         
-        frame_save 
-        frame_record
-       
-        frames_shown
-        
-        rerun_lim
-        rerun_num
-        saved_tex
-        
-        digin_dummy
-        
-        countdown
-        
-        frametex
-        
+        % key, trigger, repeats
         wait_key
         wait_trigger
-
-        LUT
-        num_lut_levels
-        cdf_vect
-        sigma
-
-        sync_pulse
-        stop_frame
-        
         n_repeats
         
-        backgrndcolor
         
-        cen_width
-        cen_height
-        
+        % stealth mode, timestamps
         stealth_flag
+        timestamp_record
+        
+        % debug
+        stop_frame
+        sync_pulse
+        frame_record
+        frame_save
+
+        
+        % initialized
+        frametex
+        run_date_time
+        run_time_total
+        main_trigger
+        tmain0
+        trep0
+        r_stream
+        frames_shown
+        digin_dummy
+        countdown
         
 	end			% properties block
-	
-	
+    
+    properties(Constant)
+        stim_name = 'Random Noise Gaussian';
+        run_script = 'Run_OnTheFly(exp_obj.stimulus);'; %'Run_Random_Noise(exp_obj.stimulus);';
+        make_frame_script = '[lastdraw, img_frame] = Random_Texture_CDF(stim_obj.rng_init.state, stim_obj.field_width, stim_obj.field_height, stim_obj.LUT, stim_obj.cdf_vect, stim_obj.num_lut_levels);';
+    end
 	
 	methods
 		
@@ -94,9 +79,9 @@ classdef	Random_Noise_CDF_LUT < handle
  
             %%%%%  check if all user-defined fields exist  %%%%%
             
-            user_fields = {'rgb','sigma','x_start', 'x_end','y_start','y_end',...
-            'stixel_width','stixel_height','field_width','field_height','stop_frame',...
-            'duration', 'seed', 'interval', 'wait_trigger', 'wait_key'};
+            user_fields = {'rgb','x_start','y_start','stixel_width','stixel_height',...
+                'field_width','field_height','stop_frame','duration', 'seed', 'interval',...
+                'wait_trigger', 'wait_key', 'sigma'};
             missed_fields=[];
             for i=1:length(user_fields)
                 if ~isfield(stimuli,user_fields{i})
@@ -110,102 +95,68 @@ classdef	Random_Noise_CDF_LUT < handle
                 return
             end
             
-            %%%%%  These are copied from stimuli and exp_obj fields  %%%%%
+            %%%%%  Taken from stimuli and exp_obj fields  %%%%%
             
-        
-            % stimuli.sigma for Gaussian into units of grayscale (e.g. sigma 0.16 means that 3 sigmas just bumps into the gamut, which is ±0.5 ).
+            % sigma
             obj.sigma = stimuli.sigma;
             
-            rgb_vect = stimuli.rgb';% Note: color is rgb vector in [0-1] format
-            rgb_vect = Color_Test( rgb_vect );
-            [ obj ] = Set_LUT(obj, rgb_vect);
+            % colors
+            obj.num_lut_levels = 1024;
+            rgb_vect = stimuli.rgb';
+            rgb_vect = Color_Test(rgb_vect);
+            obj = Set_LUT(obj, rgb_vect);
+            
+            obj.backgrndcolor = stimuli.back_rgb';
+            obj.backgrndcolor = Color_Test( obj.backgrndcolor );
  
         
-            % Offsets of the stimulus center pixel from the screen center
-            % pixel.
-            obj.x_cen_offset = Find_Cen_Offsets( stimuli.x_start, stimuli.x_end, exp_obj.monitor.width );
-            obj.y_cen_offset = Find_Cen_Offsets( stimuli.y_start, stimuli.y_end, exp_obj.monitor.height );
-
-            obj.stixel_width = stimuli.stixel_width;
-            obj.stixel_height = stimuli.stixel_height;
+            % size
             obj.field_width = stimuli.field_width;
             obj.field_height = stimuli.field_height;
+            obj.x_start = stimuli.x_start;
+            obj.y_start = stimuli.y_start;
+            obj.span_width = obj.field_width * stimuli.stixel_width;
+            obj.span_height = obj.field_height * stimuli.stixel_height;
+            % here we can check if the field will go beyond screen edges -
+            % doesn't break the script but some pixels will be NOT shown
             
-            obj.span_width = obj.field_width * obj.stixel_width;
-            obj.span_height = obj.field_height * obj.stixel_height;
-            
-            % Check for validity of stixel setup
-            if obj.span_width ~= abs(stimuli.x_start-stimuli.x_end)
-                fprintf('\t RSM ERROR: Stimulus width (x) in stixels and pixels does not match \n');
-                return
-            end
-            
-            if  obj.span_height ~= abs(stimuli.y_start-stimuli.y_end)
-                fprintf('\t RSM ERROR: Stimulus height (y) in stixels and pixels does not match \n');
-                return
-            end
-            
-
-                       
-        
-            
-            [ obj.sync_pulse ] = Sync_Setup_Util( stimuli, exp_obj );
-            
-            
-            obj.stop_frame = stimuli.stop_frame;
-            
+            % duration, interval, seed
             obj.run_duration = stimuli.duration;
             obj.stim_update_freq = stimuli.interval;
             obj.rng_init.state = Init_RNG_JavaStyle(stimuli.seed);
-            obj.n_repeats = stimuli.n_repeats;
-                          
-            obj.backgrndcolor = stimuli.back_rgb';
-            obj.backgrndcolor = Color_Test( obj.backgrndcolor );
             
-            obj.frame_save = 0; % turning on frame save dramatically slows program. Turn on for debug only.         
-            obj.wait_trigger = stimuli.wait_trigger;                            
+            % key, trigger, repeats
+            obj.wait_trigger = stimuli.wait_trigger;
             obj.wait_key = stimuli.wait_key;
-                
-            obj.stim_name = 'Random Noise Gaussian';
-            obj.run_script = 'Run_OnTheFly(exp_obj.stimulus);'; %'Run_Random_Noise(exp_obj.stimulus);';
-            obj.make_frame_script = '[lastdraw, img_frame] = Random_Texture_CDF(stim_obj.rng_init.state, stim_obj.field_width, stim_obj.field_height, stim_obj.LUT, stim_obj.cdf_vect, stim_obj.num_lut_levels);';
-
+            obj.n_repeats = stimuli.n_repeats;
+        
+            % stealth mode (replace with save/not_save user param?)
+            obj.stealth_flag = exp_obj.stealth_flag;
+            
+            % timestamp record
+            num_frames_planned = (obj.run_duration * ceil(exp_obj.monitor.screen_refresh_freq)) +1;  % +1 and ceil provide a "buffer factor" to eliminate worrys about exceeding array size
+            obj.timestamp_record = zeros(1,num_frames_planned);
+            
+            % for debug
+            obj.stop_frame = stimuli.stop_frame;
+            obj.sync_pulse = Sync_Setup_Util( stimuli, exp_obj );
+            obj.frame_record = [];
+            obj.frame_save = 0; % turning on frame save dramatically slows program. Turn on for debug only.
+            
+            
+            %%%%%  Simply initialized  %%%%%
+            obj.frametex = [];
             obj.run_date_time = [];
             obj.run_time_total = [];
-                
             obj.main_trigger = 0;
             obj.tmain0 = [];
- 
-            
-            % For random noise start out with a gauranteed valid
-            % rep_trigger (since we use rep_triggering only for update freq
-            % control
-            obj.rep_trigger = 1;
             obj.trep0 = [];
-            
-            num_frames_planned = (obj.run_duration * ceil(exp_obj.monitor.screen_refresh_freq)) +1;  % +1 and ceil provide a "buffer factor" to eliminate worrys about exceeding array size
-            obj.timestamp_record = zeros(obj.n_repeats,num_frames_planned);
-            obj.frame_record = [];
-            
-            blank = zeros(4, obj.field_width, obj.field_height, 'uint8');
-            
-            blank(4,:,:) = ones(1, obj.field_width, obj.field_height, 'uint8') * 255;
-            obj.blank_frame = blank;
-           
             obj.r_stream = [];
             obj.frames_shown = 0;
-            obj.rerun_lim = 3;
-            obj.rerun_num = 0;
-            obj.saved_tex = [];
             obj.digin_dummy = [];
             obj.countdown = 1;
-            obj.frametex = [];
-            
-            obj.cen_width = exp_obj.monitor.cen_width;
-            obj.cen_height = exp_obj.monitor.cen_height;
-            
-            obj.stealth_flag = exp_obj.stealth_flag;
-         
+%             obj.rng_init.method = 'mt19937ar';
+      
 		end		% constructor 
         
         
@@ -213,7 +164,7 @@ classdef	Random_Noise_CDF_LUT < handle
         
         function[ obj ] = Set_LUT(obj, rgb_vect)
             
-            obj.num_lut_levels = 1024;
+            
 
             % Goal is to simulate 3 sigma worth of Gaussian range
             % within the number of lut levels (so first lut is -3 sigma)
@@ -230,38 +181,26 @@ classdef	Random_Noise_CDF_LUT < handle
             % the x-axis to count for deviation further out on the gaussian, so the
             % sigma we send to the cdf is 0.5
 
-            cdf_vect = cdf('norm',x, 0, working_sigma);
-
-            obj.cdf_vect = single(cdf_vect);
+            obj.cdf_vect = single(cdf('norm',x, 0, working_sigma));
             
             lut = ones(obj.num_lut_levels, 3);
             lut = lut / 2;
-                                                % Max level of modulation
-                                                % at 3 sigma is set by
-                                                % rgb_vect 
-            lut(:,1) = lut(:,1) + ((x /3) * rgb_vect(1))'; 
-            lut(:,2) = lut(:,2) + ((x /3) * rgb_vect(2))';
-            lut(:,3) = lut(:,3) + ((x /3) * rgb_vect(3))';
-
-            lut = round(lut * 255);
-
-            lv_i = 0;
-
-            for i = 1:obj.num_lut_levels,
-   
-                for j = 1:3,
-        
-                    lv_i = lv_i + 1;
-                    lut_vect(lv_i) = lut(i,j);
-    
-                end
+            
+            % Max level of modulation at 3 sigma is set by rgb_vect
+            for li=1:3
+                lut(:,li) = lut(:,li) + x' * rgb_vect(li) / 3;
             end
-
-            obj.LUT = uint8(lut_vect); 
+            
+            lut = round(255 * lut);    % NB: This cannot be converted to 0 to 1
+            % The reason is that these LUT values get directly
+            % read into the texture input as uint values
+            % Any replacement has to be with uint8 values.
+            
+            lut_vect = reshape(lut', numel(lut),1)';
+            obj.LUT = uint8(lut_vect);
+            
         end  % set lut
             
-            
     end			% methods block
-    
         
 end             % Random Noise classdef

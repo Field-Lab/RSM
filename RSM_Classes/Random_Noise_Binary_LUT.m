@@ -210,9 +210,6 @@ classdef	Random_Noise_Binary_LUT < handle
 %                 lut = rnds;
 %                 
 %             end
-
-
- 
             lut = round(255 * lut);    % NB: This cannot be converted to 0 to 1
                         % The reason is that these LUT values get directly
                         % read into the texture input as uint values

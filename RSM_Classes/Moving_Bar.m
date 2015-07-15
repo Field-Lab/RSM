@@ -43,6 +43,7 @@ classdef	Moving_Bar < handle
         stim_update_freq
         main_trigger
         tmain0
+        trep0
         frames_shown
 
 	end			% properties block
@@ -150,6 +151,7 @@ classdef	Moving_Bar < handle
             obj.stim_update_freq = []; % By setting this to empty we remove artificial delay in main execution while loop
             obj.main_trigger = 0;        
             obj.tmain0 = [];
+            obj.trep0 = [];
             obj.frames_shown = 0;
 
 		end		% constructor 

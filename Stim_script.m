@@ -271,15 +271,15 @@ stimulus.type = 'RG';
 stimulus.back_rgb = [0.5, 0.5, 0.5];
 stimulus.rgb = [1.0, 1.0, 1.0];
 stimulus.rgb = stimulus.rgb - stimulus.back_rgb;
-stimulus.interval = 1;
+stimulus.interval = 30;
 stimulus.seed = 11111;
 
 stimulus.x_start = 120;  stimulus.x_end = 720;
 stimulus.y_start = 50;   stimulus.y_end = 650;
-stimulus.stixel_width = 1;      stimulus.stixel_height = 1;       stimulus.field_width = 600;        stimulus.field_height = 600;        
+stimulus.stixel_width = 30;      stimulus.stixel_height = 30;       stimulus.field_width = 20;        stimulus.field_height = 20;        
 stimulus.duration = 2;     
 stimulus.wait_trigger = 0;
-stimulus.wait_key = 1;
+stimulus.wait_key = 0;
 stimulus.interval_sync = 0;
 stimulus.stop_frame = [];
 stimulus.sigma = 0.16;
