@@ -260,21 +260,23 @@ classdef	PulseCombo < handle
         
         function Run_Pulse_Rep( obj )
             
-            
+            Pulse_DigOut_Channel;
             % blit the texture 
             mglBltTexture( obj.frametex, [(obj.cen_width + obj.x_cen_offset), (obj.cen_height + obj.y_cen_offset), obj.span_width, obj.span_height] );   % should be centered
-                
             mglFlush();
-            Pulse_DigOut_Channel;
+
+            mglBltTexture( obj.frametex, [(obj.cen_width + obj.x_cen_offset), (obj.cen_height + obj.y_cen_offset), obj.span_width, obj.span_height] );   % should be centered
+            mglFlush();
             
             RSM_Pause(obj.frames_per_halfcycle); 
              
+            Pulse_DigOut_Channel;
             % clear the screen
             mglClearScreen( obj.backgrndcolor );   
-            
             mglFlush();
-            Pulse_DigOut_Channel;
-            
+            mglClearScreen( obj.backgrndcolor );
+            mglFlush();
+
             RSM_Pause(obj.frames_per_halfcycle);
   
         end     % run single flash on or off 
