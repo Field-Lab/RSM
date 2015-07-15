@@ -185,7 +185,9 @@ for repeat_counter = 1:n_repeats
     end % all pending stimuli
     
     % reset screen coordinates
-    mglScreenCoordinates();
+    if repeat_counter==n_repeats
+        mglScreenCoordinates();
+    end
     mglClearScreen( exp_obj.monitor.backgrndcolor );
     mglFlush();
 

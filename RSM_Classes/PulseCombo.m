@@ -316,7 +316,9 @@ classdef	PulseCombo < handle
             Pulse_DigOut_Channel;
             mglQuad(x_vertices, y_vertices, obj.backgrndcolor, 0);
             mglFlush();
-            RSM_Pause(obj.frames_for_flash-2);
+            mglQuad(x_vertices, y_vertices, obj.backgrndcolor, 0);
+            mglFlush();
+            RSM_Pause(obj.frames_for_back-2);
             
         end
 		

@@ -51,12 +51,12 @@ stimulus.back_rgb = [0.5, 0.5, 0.5];
  % duration of the color flash in frames
 stimulus.frames = 30; % minimum 3
 stimulus.back_frames = 30; % minimum 3
-stimulus.n_repeats = 2;
+stimulus.n_repeats = 1;
 stimulus.x_start = 120;  stimulus.x_end = 620;
 stimulus.y_start = 50;   stimulus.y_end = 650;
 
 stimulus.wait_trigger = 0;
-stimulus.wait_key = 0;
+stimulus.wait_key = 1;
 run_stimulus(display, stimulus);
 clear stimulus;
 
@@ -73,10 +73,10 @@ clear_pending_stim
 stimulus = [];
 stimulus.type = 'PL'; 
 stimulus.control_flag = 1;
-stimulus.map_file_name = '1234d01/map-0000.txt';
-stimulus.lut_file_name = '1234d01/lut.mat';
-% stimulus.map_file_name = '/map_data034/map_data034.txt';
-% stimulus.sfile_name = 's36_test'; % provide either lut file name ot sfile name
+% stimulus.map_file_name = '1234d01/map-0000.txt';
+% stimulus.lut_file_name = '1234d01/lut.mat';
+stimulus.map_file_name = '/map_data034/map_data034.txt';
+stimulus.sfile_name = 's36_test'; % provide either lut file name ot sfile name
 stimulus.back_rgb = [0.5, 0.5, 0.5];
 stimulus.frames = 20;
 stimulus.n_repeats = 3;
@@ -130,7 +130,7 @@ stimulus.subtype = 'sine'; % sine or square - only matters for MG (do we want it
 % these are always required
 stimulus.back_rgb = [0.0, 0.0, 0.0];
 stimulus.n_for_each_stim = 1; % how many random sequences will be created
-stimulus.n_repeats = 1; % how many identical sequences will be shown
+stimulus.n_repeats = 2; % how many identical sequences will be shown
 stimulus.interval = 1; % blank screen between gratings, seconds
 stimulus.wait_trigger = 0;
 stimulus.wait_key = 0;
