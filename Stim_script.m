@@ -269,9 +269,12 @@ clear_pending_stim
 
 stimulus = [];
 stimulus.type = 'RM';
-stimulus.fn = 'test_5_A.rawMovie';
+stimulus.movie_name = 'test_5_A.rawMovie';
+% stimulus.movie_path = ''; % provide if desired
 stimulus.back_rgb = [0.5, 0.5, 0.5];
-stimulus.x_cen_offset = 0;   stimulus.y_cen_offset = 0;
+stimulus.x_start = 0;
+stimulus.y_start = 0;
+stimulus.stixel_width = 1; stimulus.stixel_height = 1;
 stimulus.interval = 1;   
 stimulus.preload = 0;
 stimulus.wait_trigger = 0;
@@ -280,8 +283,8 @@ stimulus.interval_sync = 0;
 stimulus.stop_frame = [];
 stimulus.flip_flag = 1;          % 1 = normal; 2 = vertical flip; 3 = horizontal flip; 4 = vertical + horizontal flip
 stimulus.reverse_flag = 0;   % set to 1 for backward (reverse), 0 for forward    
-stimulus.first_frame = 1; 
-stimulus.last_frame = [];  
+stimulus.first_frame = 1; % always an integer 
+stimulus.last_frame = [];  % set integer or [] for whole movie
 
 stimulus.n_repeats = 1;
 

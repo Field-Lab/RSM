@@ -10,79 +10,70 @@ classdef	Raw_Movie < handle
 	properties
         
         % Required props for all stim classes        
-        stim_name
-        
-        run_date_time
-        run_time_total
-        
-        main_trigger
-        tmain0
-        
-        rep_trigger
-        trep0
 
-        run_duration
-        stim_update_freq              
-        run_script
- 
-        timestamp_record
-        make_frame_script
-        movie_path
-        movie_filename 
-        fid
-        
-        header_size
-        span_height
-        span_width
-        blank_frame
-        
-        r_stream                % used for signalling to Run_OnTheFly
-                
-        predicted_frame_times
-
-        x_cen_offset
-        y_cen_offset
-        
-        frame_save 
-        frame_record
-        frames_shown            % formerly reps_run
-        n_frames                % formerly num_reps
-
-        stop_frame              % for interrupts at a given frame shown
-        first_frame
-        last_frame
-        
-        current_frame
-
-        mem_movie
-     
-        
-        countdown               % used for holding each movie frame for multiple screen refreshes
-        frametex
-        
-        wait_key
-        wait_trigger
-        
-        sync_pulse
-        
-        digin_dummy
-        
-        n_repeats
-        repeat_num 
-
+        % colors
         backgrndcolor
         
-        cen_width
-        cen_height
+        % centering and size
+        x_start
+        y_start
+        span_height
+        span_width
         
-        stealth_flag
+        % key, trigger, repeats
+        wait_key
+        wait_trigger
+        n_repeats
         
+        % file path and name, header size
+        movie_filename
+        header_size
+        
+        % frames setup
+        first_frame
+        last_frame
+        n_frames
+        
+        % flip and reverse flags
         reverse_flag
         flip_flag
         
+        % interval
+        stim_update_freq              
+ 
+        % stealth mode, timestamps
+        stealth_flag
+        timestamp_record
+        
+        %debug
+        stop_frame
+        frame_save
+        frame_record
+        sync_pulse
+        
+        
+        % initialized
+        
+        run_date_time
+        run_time_total = [];
+        main_trigger = 0;
+        tmain0 = [];
+        trep0 = [];
+        frames_shown = 0;
+        mem_movie = [];
+        current_frame = 0;
+        countdown = 1;
+        frametex = [];
+        digin_dummy = [];
+        r_stream = -999;
+        
 	end			% properties block
-	
-	
+    
+    properties(Constant)
+        stim_name = 'Raw_Movie';
+        run_script = 'Run_OnTheFly(exp_obj.stimulus);'; %'Play_Raw_Movie(exp_obj.stimulus);';
+        make_frame_script = '[img_frame] = Make_Frame_RawMovie( stim_obj );';
+    end
 	
 	methods
 		
@@ -92,7 +83,7 @@ classdef	Raw_Movie < handle
             %%%%%  check if all user-defined fields exist  %%%%%
             
             user_fields = {'stop_frame','flip_flag', 'reverse_flag','first_frame','last_frame',...
-            'fn','interval','preload'};
+            'movie_name','interval','preload'};
             missed_fields=[];
             for i=1:length(user_fields)
                 if ~isfield(stimuli,user_fields{i})
@@ -108,191 +99,112 @@ classdef	Raw_Movie < handle
             
             %%%%%  These are copied from stimuli and exp_obj fields  %%%%%
 
-            if (isfield(stimuli,'x_cen_offset'))
-                if (abs(stimuli.x_cen_offset) > (exp_obj.monitor.width / 2))
-                    fprintf('\t RSM ERROR: X-position offset exceeds 1/2 display width. Please redfine and try again. \n');
-                    return
-                else
-                    obj.x_cen_offset = stimuli.x_cen_offset;
-                end      
-            else
-                obj.x_cen_offset = 0;
-            end  
-    
-        
-            if (isfield(stimuli,'y_cen_offset'))
-                if (abs(stimuli.y_cen_offset) > (exp_obj.monitor.height / 2))
-                    fprintf('\t RSM ERROR: Y-position offset exceeds 1/2 display height. Please redfine and try again. \n');
-                    return
-                else
-                    obj.y_cen_offset = stimuli.y_cen_offset;
-                end     
-            else
-                obj.y_cen_offset = 0;
-            end  
-        
-        
-            [ obj.sync_pulse ] = Sync_Setup_Util( stimuli, exp_obj );
-
-            obj.stop_frame = stimuli.stop_frame;
-        
-            
-            obj.n_repeats = stimuli.n_repeats;
-            
-            obj.flip_flag = stimuli.flip_flag;
-            obj.reverse_flag = stimuli.reverse_flag;
-            obj.first_frame = stimuli.first_frame;
-            obj.last_frame = stimuli.last_frame;
-            
-            nopath_movie_filename = stimuli.fn;
-            obj.stim_update_freq = stimuli.interval;
-            
-
-
-            if (isfield(stimuli,'movie_path'))
-                obj.movie_path = stimuli.movie_path;        
-            else
-                % silently set path to default
-                obj.movie_path = exp_obj.movie_path;             
-            end
-
-
-            obj.wait_trigger = stimuli.wait_trigger;                            
-            obj.wait_key = stimuli.wait_key;
-
+            % colors
             obj.backgrndcolor = stimuli.back_rgb';
             obj.backgrndcolor = Color_Test( obj.backgrndcolor );
-            
-            obj.stim_name = 'Raw_Movie';
 
-            obj.run_date_time = [];
-            obj.run_time_total = [];
+            % centering
+            obj.x_start = stimuli.x_start + exp_obj.monitor.width/2; % for top let corner, don't add monitor
+            obj.y_start = stimuli.y_start + exp_obj.monitor.height/2; % for top left corner, don't add monitor
+
+            % key, trigger, repeats
+            obj.wait_trigger = stimuli.wait_trigger;                            
+            obj.wait_key = stimuli.wait_key;
+            obj.n_repeats = stimuli.n_repeats;
            
-            obj.main_trigger = 0;
-            obj.tmain0 = [];
+            % file path and name setup
+            if (isfield(stimuli,'movie_path'))
+                movie_path = stimuli.movie_path;
+            else
+                % silently set path to default
+                movie_path = exp_obj.movie_path;
+            end
+            obj.movie_filename = cat(2, movie_path, '/', stimuli.movie_name);
             
-            obj.rep_trigger = 1;
-            obj.trep0 = [];
-            
-            obj.run_script = 'Run_OnTheFly(exp_obj.stimulus);'; %'Play_Raw_Movie(exp_obj.stimulus);';
-            obj.make_frame_script = '[img_frame] = Make_Frame_RawMovie( stim_obj );';
-
-            
-            %---------------------
-            
-            obj.movie_filename = cat(2, obj.movie_path, '/', nopath_movie_filename);
-            
-            obj.fid=fopen(obj.movie_filename,'r');
-
-            temp = fscanf(obj.fid, '%s', 1);% scan the file for a string
-
+            % read movie header and extract dimensions and duration (frames)
+            fid=fopen(obj.movie_filename,'r');
+            temp = fscanf(fid, '%s', 1);% scan the file for a string
             if ~isequal( temp, 'header-size' )% check that string is 'header-size'
                 fprintf('\t FATAL ERROR in raw movie read: no header-size.');
                 keyboard
             else
-                obj.header_size = str2num( fscanf(obj.fid, '%s', 1) );  % now scan and extract header size info
+                obj.header_size = str2num( fscanf(fid, '%s', 1) );  % now scan and extract header size info
             end
-
-
-            obj.span_height=[];
-            obj.span_width=[];
-            n_frames = [];
-
-            while ( isempty(obj.span_height) || isempty(obj.span_width) || isempty(n_frames) ) 
-                t=fscanf(obj.fid,'%s',1);               
+            
+            duration_in_frames = [];
+            while isempty(findprop(obj,'span_height')) || isempty(findprop(obj,'span_width')) || isempty(duration_in_frames)
+                t=fscanf(fid,'%s',1);               
                 switch t
                     case 'height'
-                        obj.span_height=str2num( fscanf(obj.fid, '%s', 1) );
+                        obj.span_height=str2num( fscanf(fid, '%s', 1) );
             
                     case 'width'
-                        obj.span_width=str2num( fscanf(obj.fid, '%s', 1) );  
+                        obj.span_width=str2num( fscanf(fid, '%s', 1) );  
         
-                    case 'frames'                     
-                        n_frames = str2num( fscanf(obj.fid, '%s', 1) );     % we will use n_frames to track number of individual frames
+                    case {'frames', 'frames-generated'}                
+                        duration_in_frames = str2num( fscanf(fid, '%s', 1) );     % we will use n_frames to track number of individual frames
                                                                                 % to be shown
-                    case 'frames-generated'                     % also see 'frames'
-                        n_frames = str2num( fscanf(obj.fid, '%s', 1) );
-            
-                    otherwise
-                        fscanf(obj.fid, '%s', 1);
                 end  % switch on header reading
             
             end      % while loop for header reading
+            % the mex code is stand alone: opens and closes at each read operation
+           fclose(fid);
+            
+            % this expands each pixel of the movie by stixel dims
+            obj.span_height=obj.span_height * stimuli.stixel_height;
+            obj.span_width=obj.span_width * stimuli.stixel_width;
+            
+            % number of frames
+            obj.first_frame = stimuli.first_frame;
+            if ~isempty(stimuli.last_frame) % user defined
+                if stimuli.last_frame > duration_in_frames
+                    fprintf('\t last frame is larger than total movie length');
+                    return
+                else
+                    obj.last_frame = stimuli.last_frame;
+                    obj.n_frames = (obj.last_frame - obj.first_frame) + 1;
+                end
+            else % default, all frames
+                obj.n_frames = duration_in_frames;
+                obj.last_frame = duration_in_frames;
+            end
+                      
+            % flags for reverse and flip
+            obj.flip_flag = stimuli.flip_flag;
+            obj.reverse_flag = stimuli.reverse_flag;
 
-            % setup number of frames to be shown
-            if ( ~isempty(obj.last_frame) )
-                % the user has specified a start and stop frame; find
-                % n_frames from that
-                obj.n_frames = (obj.last_frame - obj.first_frame) + 1;
-                
-            else
-                % Then we are using the default mode where we auto-detect
-                % the number of frames
-                obj.n_frames = n_frames;
-                obj.last_frame = n_frames;
-
-            end     % test for default stop_frame
-            % Close file (the mex code is stand alone: opens and closes
-            % w/ each read operation)
-         
-%            fclose(obj.fid);
+            % interval
+            obj.stim_update_freq = stimuli.interval;
             
-            % Now re-open and bypass header
-            obj.fid=fopen(obj.movie_filename,'r');
-
-            fread(obj.fid, obj.header_size);
-
-             
-            blank = zeros(4, obj.span_width, obj.span_height, 'uint8');
+            % timestamp record
+            obj.timestamp_record = zeros(1,obj.n_frames);
             
-            blank(4,:,:) = ones(1, obj.span_width, obj.span_height, 'uint8') * 255;
-            obj.blank_frame = blank;
-            
-            obj.r_stream = -999; % This is for signalling purposes. This tells Run_OnTheFly to use Make_Frame script
-            num_frames_planned = obj.n_frames;
-            obj.timestamp_record = zeros(1,num_frames_planned);
-     
-            obj.frame_save = 0;
-            obj.frame_record = [];
-            obj.frames_shown = 0;
-
-            obj.mem_movie = [];
-           
-            obj.current_frame = 0;
-            obj.repeat_num = 0;
-            obj.countdown = 1;          
-            obj.frametex = [];
-            
-            obj.digin_dummy = [];
-            
-            
-            obj.cen_width = exp_obj.monitor.cen_width;
-            obj.cen_height = exp_obj.monitor.cen_height;
-            
+            % stealth mode
             obj.stealth_flag = exp_obj.stealth_flag;
 
+            %debug
+            obj.sync_pulse = Sync_Setup_Util( stimuli, exp_obj );
+            obj.stop_frame = stimuli.stop_frame;
+            obj.frame_save = 0;
+            obj.frame_record = [];
+     
+            %%%%%  Simply initialized  %%%%%
+            
+            obj.run_date_time = [];
+            obj.run_time_total = [];
+            obj.main_trigger = 0;
+            obj.tmain0 = [];
+            obj.trep0 = [];
+            obj.frames_shown = 0;
+            obj.mem_movie = [];
+            obj.current_frame = 0;
+            obj.countdown = 1;          
+            obj.frametex = [];
+            obj.digin_dummy = [];
+            obj.r_stream = -999; % This is for signalling purposes. This tells Run_OnTheFly to use Make_Frame script
+
         end		% constructor
-		
-		
-
-        function Set_Frame_Num( obj )
-            
-            % Set start and stop limits 
-            if (obj.reverse_flag == 1)
-                % reverse case
-                obj.current_frame = obj.last_frame - obj.frames_shown;
-                
-            else
-                % forward case
-                obj.current_frame = obj.first_frame + obj.frames_shown;
-
-            end % reverse 
-            
-            
-        end     % set frame num
-	
-        
-	end			% methods block
     
+	end			% methods block
     
 end             % Random Noise clas
