@@ -123,7 +123,7 @@ for repeat_counter = 1:n_repeats
                     fprintf('\nOUTPUT TRIGGER\n');
                 end
                 % for others, do every time
-                if isempty( exp_obj.stimulus.run_duration ) && isempty( findprop(exp_obj.stimulus, 'n_frames') )
+                if isempty(  findprop(exp_obj.stimulus, 'run_duration' )) && isempty( findprop(exp_obj.stimulus, 'n_frames') )
                     Pulse_DigOut_Channel;
                     fprintf('\nOUTPUT TRIGGER\n');
                 end
