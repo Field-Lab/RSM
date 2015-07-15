@@ -45,22 +45,18 @@ clear_pending_stim
 stimulus = [];
 stimulus.type = 'FPA';  
 stimulus.rgb{1} = [1, 0, 1];
-stimulus.rgb{2} = [0, 0, 0];
-stimulus.rgb{3} = [0, 0, 1];
+% stimulus.rgb{2} = [0, 0, 0];
+% stimulus.rgb{3} = [0, 0, 1];
 stimulus.back_rgb = [0.5, 0.5, 0.5];
  % duration of the color flash in frames
 stimulus.frames = 30; % minimum 3
- % duration of the background flash in frames (comes before the whole thing
- % and after each color flash) - makes intervals between *repeats* even
- % longer(!) talk to ej. Way out for better timing - specify the whole
- % sequence? shouldn't be a big problem
-stimulus.back_frames = 3; % min 3
+stimulus.back_frames = 30; % minimum 3
 stimulus.n_repeats = 2;
 stimulus.x_start = 120;  stimulus.x_end = 620;
 stimulus.y_start = 50;   stimulus.y_end = 650;
 
 stimulus.wait_trigger = 0;
-stimulus.wait_key = 1;
+stimulus.wait_key = 0;
 run_stimulus(display, stimulus);
 clear stimulus;
 
@@ -109,7 +105,7 @@ stimulus.rgb = [1, 1, 1];
 stimulus.rgb = stimulus.rgb - stimulus.back_rgb;
 stimulus.bar_width = [120];
 stimulus.direction = [0 45 ]; %90 135 180 225 270 315];
-stimulus.delta = [5];  % pixel edge length/frame    
+stimulus.delta = [10];  % pixel edge length/frame    
 stimulus.interval = 0; %frame
 stimulus.wait_trigger = 0;
 stimulus.wait_key = 0;
@@ -128,8 +124,8 @@ fprintf('\n\n<strong> Grating. </strong>\n');
 %------------------------------------------------------------------------------
 clear_pending_stim
 stimulus = [];
-stimulus.type = 'CG'; % MG for moving grating, CG for counterphase grating
-stimulus.subtype = 'square'; % sine or square - only matters for MG (do we want it for CG?)
+stimulus.type = 'MG'; % MG for moving grating, CG for counterphase grating
+stimulus.subtype = 'sine'; % sine or square - only matters for MG (do we want it for CG?)
 
 % these are always required
 stimulus.back_rgb = [0.0, 0.0, 0.0];
@@ -179,12 +175,12 @@ stimulus.x_start = 0;%  stimulus.x_end = 700;
 stimulus.y_start = 0;%   stimulus.y_end = 600;
 stimulus.stixel_width = 40;   stimulus.stixel_height = 40;
 stimulus.field_width = 10;  stimulus.field_height = 10;        
-stimulus.duration = 2;  % sec; duration of each repetition!
+stimulus.duration = 5;  % sec; duration of each repetition!
 stimulus.wait_trigger = 0;
 stimulus.wait_key = 0;
 stimulus.interval_sync = 0;
 stimulus.stop_frame = [];
-stimulus.n_repeats = 2;
+stimulus.n_repeats = 1;
 stimulus.binary = 0;
 
 

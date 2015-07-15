@@ -83,6 +83,7 @@ for repeat_counter = 1:n_repeats
     % flip to a RN stimulus
     if exp_obj.stealth_flag <= 1
         Pulse_DigOut_Channel;
+        fprintf('\nOUTPUT TRIGGER\n');
     end
     
     % Get # pending stimuli
@@ -110,16 +111,21 @@ for repeat_counter = 1:n_repeats
             % Phase 1
             % CORE EVAL STATEMENT THAT RUNS EACH STIMULUS REP
             eval(exp_obj.stimulus.run_script);
-            
-            % could get time stamp here for analysis later
-            
-            % Phase 2 - figure out what's that later
+
+            % Phase 2
             % Test whether it is time to output another pulse to the daq
             if exp_obj.stealth_flag <= 1
+                % for WN and movies, do every x frames
                 if  exp_obj.dio_config.numframes_per_pulse > 0 && ...
                         exp_obj.stimulus.frames_shown > 0 && ...% This prevents double trigger on first pulse out.
                         mod(exp_obj.stimulus.frames_shown, exp_obj.dio_config.numframes_per_pulse)==0
                     Pulse_DigOut_Channel;
+                    fprintf('\nOUTPUT TRIGGER\n');
+                end
+                % for others, do every time
+                if isempty( exp_obj.stimulus.run_duration ) && isempty( findprop(exp_obj.stimulus, 'n_frames') )
+                    Pulse_DigOut_Channel;
+                    fprintf('\nOUTPUT TRIGGER\n');
                 end
             end
             
