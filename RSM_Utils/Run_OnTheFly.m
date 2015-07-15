@@ -39,7 +39,14 @@ mglClearScreen( stim_obj.backgrndcolor );
 % mglBltTexture( stim_obj.frametex, [(stim_obj.cen_width + stim_obj.x_cen_offset), (stim_obj.cen_height + stim_obj.y_cen_offset), stim_obj.span_width, stim_obj.span_height] );   % should be centered
 % this version takes provided start values as offsets from [0 0] monitor
 % coordinates
-mglBltTexture( stim_obj.frametex, [stim_obj.x_start, stim_obj.y_start, stim_obj.span_width, stim_obj.span_height] );   % should be centered
+
+% for x-start and y-start to be the in the centering mode, precalculate
+% x_start = x_start+ half_monitor_width 
+% y_start = y_start + half_monitor_height
+% and set last 2 arguments to 0, 0
+% for x-start and y-start to be in the top left corner mode, leave x_start
+% and y_start original values and set last 2 arguments to -1, -1
+mglBltTexture( stim_obj.frametex, [stim_obj.x_start, stim_obj.y_start, stim_obj.span_width, stim_obj.span_height], 0,0  );   % should be centered
 
 
 % Display sync pulse square (if called for)

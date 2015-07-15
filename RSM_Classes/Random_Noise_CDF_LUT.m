@@ -113,8 +113,8 @@ classdef	Random_Noise_CDF_LUT < handle
             % size
             obj.field_width = stimuli.field_width;
             obj.field_height = stimuli.field_height;
-            obj.x_start = stimuli.x_start;
-            obj.y_start = stimuli.y_start;
+            obj.x_start = stimuli.x_start + exp_obj.monitor.width/2; % for top let corner, don't add monitor
+            obj.y_start = stimuli.y_start + exp_obj.monitor.height/2; % for top left corner, don't add monitor
             obj.span_width = obj.field_width * stimuli.stixel_width;
             obj.span_height = obj.field_height * stimuli.stixel_height;
             % here we can check if the field will go beyond screen edges -
