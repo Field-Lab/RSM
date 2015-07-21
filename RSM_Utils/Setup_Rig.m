@@ -18,7 +18,7 @@
 
 function[ exp_session ] = Setup_Rig
 
-home_dir_base = '/Users/acquisition/Documents/RSM';
+home_dir_base = '/Users/local-admin/Documents/RSM';
 
 % Setup for experimental session constructor
 
