@@ -5,9 +5,11 @@
 % 
 % Tested by Xiaoyang Yao
 % 2015-04-02
-
+matlabPathRSM = '/Users/xyao/matlab/RSM';
+addpath(genpath(matlabPathRSM));
 Start_RSM;
 mglSetGammaTable( RSM_GLOBAL.monitor.red_table, RSM_GLOBAL.monitor.green_table, RSM_GLOBAL.monitor.blue_table );
+mglMoveWindow(0, 1080)
 
 %% Stimulus
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -109,17 +111,20 @@ stimulus = [];
 stimulus.type = 'MB';
 stimulus.num_reps = 1;   % This gives the number of times the bar moves across the screen within each individual trial.
 
-stimulus.back_rgb = [0.5, 0.5, 0.5];
-stimulus.rgb = [1, 1, 1];
-stimulus.rgb = stimulus.rgb - stimulus.back_rgb;
-stimulus.bar_width = [120 240]; % pixel
+stimulus.back_rgb = {[0.5, 0.5, 0.5]};
+stimulus.rgb = {[1, 1, 1]};
+stimulus.rgb = cellfun(@minus, stimulus.rgb, stimulus.back_rgb, 'Un', 0);
+
+stimulus.bar_width = [360]; % pixel
 stimulus.direction = [0 45 90 135 180 225 270 315];
-stimulus.delta = [5];    % speed of the moving bar, unit: pixel/frame    
-stimulus.interval = 0;   % duration of gray screen after each trial, unit: frame
+stimulus.delta = [2 4];    % speed of the moving bar, unit: pixel/frame    
+stimulus.interval = 30;   % duration of gray screen after each trial, unit: frame
+stimulus.x_start = 200; stimulus.x_end = 600;
+stimulus.y_start = 100; stimulus.y_end = 500;
 stimulus.wait_trigger = 0;
 stimulus.wait_key = 0;
-stimulus.repeats = 1;    % This gives the number of cycles for each parameter combination
-
+stimulus.repeats = 4;    % This gives the number of cycles for each parameter combination
+stimulus.wait_1st_trigger = 1; % switch q_RSM.m back and forth to enable this function
 run_stimulus(display, stimulus);
 clear stimulus;
 
@@ -133,19 +138,19 @@ clear_pending_stim
 stimulus = [];
 stimulus.type = 'MG';
 stimulus.subtype = 'square';     % 'square' or 'sine'
-stimulus.back_rgb = [0, 0, 0];
-stimulus.rgb = [1.0, 1.0, 1.0];
-stimulus.rgb = stimulus.rgb - stimulus.back_rgb;
+stimulus.back_rgb = {[0.25, 0.25, 0.25]};
+stimulus.rgb = {[0.75, 0.75, 0.75]};
+
+stimulus.rgb = cellfun(@minus, stimulus.rgb, stimulus.back_rgb, 'Un', 0);
 stimulus.phase0 = 0;             % initial phase of the grating. Units are in radians.
-stimulus.temporal_period = [2];  % sec
-stimulus.spatial_period = [120]; % frame
-stimulus.direction = [0 45 90 135 180 225 270 315];       % Convention 0 deg is 3 oclock
-stimulus.frames = 240;           % number of frames for each stimulus trial.
-stimulus.interval = 0;           % unit: second
+stimulus.temporal_period = [4];  % sec
+stimulus.spatial_period = [240]; % frame
+stimulus.direction = [45];       % Convention 0 deg is 3 oclock
+stimulus.frames = 600;           % number of frames for each stimulus trial.
+stimulus.interval = 2;           % unit: second
 stimulus.wait_trigger = 0;
 stimulus.wait_key = 0;
-stimulus.repeats = 2;
-
+stimulus.repeats = 1; 
 
 run_stimulus(display, stimulus);
 clear stimulus;

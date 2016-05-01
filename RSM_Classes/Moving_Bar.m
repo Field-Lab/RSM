@@ -39,6 +39,12 @@ classdef	Moving_Bar < handle
         x_end
         y_start
         y_end
+        x_first
+        y_first
+        x_center
+        y_center
+        x_span
+        y_span
         
         num_reps    % this controls how many reps we want to run
         
@@ -95,51 +101,84 @@ classdef	Moving_Bar < handle
                 return
             end
             
+            if (isfield(stimuli,'x_start'))
+                obj.x_start = stimuli.x_start;
+            else
+                fprintf('\t RSM ERROR: x_start not recognized. Please define x_start value and try again. \n');
+                return
+            end
+
+            if (isfield(stimuli,'x_end'))
+                obj.x_end = stimuli.x_end;
+            else
+                fprintf('\t RSM ERROR: x_end not recognized. Please define x_end value and try again. \n');
+                return
+            end
+
+            if (isfield(stimuli,'y_start'))
+                obj.y_start = stimuli.y_start;
+            else
+                fprintf('\t RSM ERROR: y_start not recognized. Please define y_start value and try again. \n');
+                return
+            end
+
+            if (isfield(stimuli,'y_end'))
+                obj.y_end = stimuli.y_end;
+            else
+                fprintf('\t RSM ERROR: y_end not recognized. Please define y_end value and try again. \n');
+                return
+            end
+            
+            obj.x_span = obj.x_end-obj.x_start;
+            obj.y_span = obj.y_end-obj.y_start;
+            obj.x_center = obj.x_start + obj.x_span/2;
+            obj.y_center = obj.y_start + obj.y_span/2;
+            
             if (isfield(stimuli,'direction'))
                 obj.direction = stimuli.direction;
                 L = 3000; % Length of the bar, the idea of making this number large is to ensure that it covers the whole display. 
                 if stimuli.direction >= 0 && stimuli.direction < 90
-                    r0 = [0, display.height]; % coordinates of one display corner.
-                    obj.x_start = [0; 0; -stimuli.bar_width; -stimuli.bar_width]; % bar was first set to be either vertical or horizontal (base on moving direction)
-                    obj.y_start = [L; -L; -L; L];
-                    [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), stimuli.direction*pi/180); % then the bar will be rotated around a corner of display by a certain degree (base on moving direction)
+                    r0 = [obj.x_start, obj.y_end]; % coordinates of one display corner.
+                    obj.x_first = [obj.x_start; obj.x_start; obj.x_start-stimuli.bar_width; obj.x_start-stimuli.bar_width]; % bar was first set to be either vertical or horizontal (base on moving direction)
+                    obj.y_first = [L; -L; -L; L];
+                    [obj.x_first, obj.y_first] = rotateData(obj.x_first, obj.y_first, r0(1), r0(2), stimuli.direction*pi/180); % then the bar will be rotated around a corner of display by a certain degree (base on moving direction)
                 elseif stimuli.direction >= 90 && stimuli.direction < 180
-                    r0 = [display.width, display.height];
-                    obj.x_start = [-L; -L; L; L];
-                    obj.y_start = [display.height+stimuli.bar_width; display.height; display.height; display.height+stimuli.bar_width];
-                    [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), (stimuli.direction-90)*pi/180);
+                    r0 = [obj.x_end, obj.y_end];
+                    obj.x_first = [-L; -L; L; L];
+                    obj.y_first = [obj.y_end+stimuli.bar_width; obj.y_end; obj.y_end; obj.y_end+stimuli.bar_width];
+                    [obj.x_first, obj.y_first] = rotateData(obj.x_first, obj.y_first, r0(1), r0(2), (stimuli.direction-90)*pi/180);
                 elseif stimuli.direction >= 180 && stimuli.direction < 270
-                    r0 = [display.width, 0];
-                    obj.x_start = [display.width+stimuli.bar_width; display.width+stimuli.bar_width; display.width; display.width];
-                    obj.y_start = [L; -L; -L; L];
-                    [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), (stimuli.direction-180)*pi/180);
+                    r0 = [obj.x_end, obj.y_start];
+                    obj.x_first = [obj.x_end+stimuli.bar_width; obj.x_end+stimuli.bar_width; obj.x_end; obj.x_end];
+                    obj.y_first = [L; -L; -L; L];
+                    [obj.x_first, obj.y_first] = rotateData(obj.x_first, obj.y_first, r0(1), r0(2), (stimuli.direction-180)*pi/180);
                 elseif stimuli.direction >= 270 && stimuli.direction < 360
-                    r0 = [0, 0];
-                    obj.x_start = [-L; -L; L; L];
-                    obj.y_start = [0; -stimuli.bar_width; -stimuli.bar_width; 0]; 
-                    [obj.x_start, obj.y_start] = rotateData(obj.x_start, obj.y_start, r0(1), r0(2), (stimuli.direction-270)*pi/180);
+                    r0 = [obj.x_start, obj.y_start];
+                    obj.x_first = [-L; -L; L; L];
+                    obj.y_first = [obj.y_start; obj.y_start-stimuli.bar_width; obj.y_start-stimuli.bar_width; obj.y_start]; 
+                    [obj.x_first, obj.y_first] = rotateData(obj.x_first, obj.y_first, r0(1), r0(2), (stimuli.direction-270)*pi/180);
                 else
                     fprintf('\t RSM ERROR: invalid direction. Please define valid direction value and try again. \n');
                     return
                 end
-                obj.x_start = obj.x_start';
-                obj.y_start = obj.y_start';
+                obj.x_first = obj.x_first';
+                obj.y_first = obj.y_first';
                 
                 % make the bar moving either vertically or horizontally
                 % based on which distance is shorter
-                x_dis = (abs(tan(stimuli.direction*pi/180)*display.height)+display.width);
-                y_dis = (abs(display.width/tan(stimuli.direction*pi/180))+display.height);
+                x_dis = (abs(tan(stimuli.direction*pi/180)*obj.y_span)+obj.x_span);
+                y_dis = (abs(obj.x_span/tan(stimuli.direction*pi/180))+obj.y_span);
                 [dis, I] = min([x_dis, y_dis]); 
                 if (isfield(stimuli,'delta'))
                     switch I
                     case 1                        
                         obj.x_delta = stimuli.delta/cos(stimuli.direction*pi/180);
                         obj.y_delta = 0;
-                        obj.frames = (sqrt(display.width^2+display.height^2) + stimuli.bar_width)/stimuli.delta + stimuli.interval;                  
+                        obj.frames = (sqrt(obj.x_span^2+obj.y_span^2) + stimuli.bar_width)/stimuli.delta + stimuli.interval;                  
                     case 2
                         obj.y_delta = stimuli.delta/sin(stimuli.direction*pi/180);
                         obj.x_delta = 0;
-                        obj.frames = (sqrt(display.width^2+display.height^2) + stimuli.bar_width)/stimuli.delta + stimuli.interval;                  
+                        obj.frames = (sqrt(obj.x_span^2+obj.y_span^2) + stimuli.bar_width)/stimuli.delta + stimuli.interval;                  
                     end
 
                 else
@@ -190,8 +229,17 @@ classdef	Moving_Bar < handle
         
         function Run_Bar_Rep( obj )
             
-            x_new = obj.x_start;
-            y_new = obj.y_start;
+            % make mask
+            mglStencilCreateBegin(1);
+            mglFillRect(obj.x_center, obj.y_center, [obj.x_span obj.y_span]);
+            mglStencilCreateEnd;
+            mglClearScreen(obj.backgrndcolor);
+            mglFlush();
+            mglStencilSelect(1);
+           
+            
+            x_new = obj.x_first;
+            y_new = obj.y_first;
             
             % Draw the quad
             mglClearScreen( obj.backgrndcolor ); 
@@ -232,6 +280,8 @@ classdef	Moving_Bar < handle
             
     
             end % loop through frames
+            
+            mglStencilSelect(0);
   
         end     % Run bar rep
 		

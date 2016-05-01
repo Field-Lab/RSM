@@ -351,7 +351,7 @@ classdef	Moving_Grating < handle
                 
                 % test for pulse
                 if ( phi >= (obj.phase_t0 + 360) )
-                    phi = phi - 360;
+                    phi = mod(phi, 360);
                     Pulse_DigOut_Channel;
                 end
                 
