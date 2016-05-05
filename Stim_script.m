@@ -76,6 +76,34 @@ stimulus.wait_key = 0;
 run_stimulus(display, stimulus);
 clear stimulus;
 
+%% Moving Flashing Square
+%------------------------------------------------------------------------------
+%
+fprintf('\n\n<strong> Moving Flashing Square. </strong>\n');
+%
+%------------------------------------------------------------------------------
+clear_pending_stim
+
+stimulus = [];
+stimulus.type = 'MS';  
+stimulus.rgb = [1, 1, 1];
+stimulus.back_rgb = [0.5, 0.5, 0.5];
+stimulus.frames = 60;                       % "frames" is the number of frame refreshes to wait for each half-cycle (i.e. the pulse is on for the number of frames set here
+                                            % and then off for the same number of frames. This completes one repetition of the pulse.
+
+stimulus.x_start = 200;  stimulus.x_end = 600;  % These fields set the start and stop pixels for the overall stimulus field size.
+stimulus.y_start = 100;   stimulus.y_end = 500;
+stimulus.stixel_width = 40;      stimulus.stixel_height = 40;   % These fields given the size of each stixel in pixels    
+stimulus.field_width = 10;       stimulus.field_height = 10;    % These fields control the number of stixels in each direction.    
+
+stimulus.num_reps = 1; % "num_reps" gives the number of times the pulse on-off cycle is completed.
+stimulus.repeats = 1; % repeats of the whole stimulus block
+stimulus.wait_trigger = 0;
+stimulus.wait_key = 0;
+
+run_stimulus(display, stimulus);
+clear stimulus;
+
 %% Full Field Pulses (g-w-g-b)
 %------------------------------------------------------------------------------
 %

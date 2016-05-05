@@ -69,6 +69,9 @@ switch stimulus.type
     case 'FC',  % flashing color
         stimulus.control_flag = 3;
         exp_obj.pending_stimuli{num_pending + 1} = PulseCombo(stimulus, exp_obj);
+    
+    case 'MS',  % moving flashing square        
+        exp_obj.pending_stimuli{num_pending + 1} = Moving_Flashing_Squares(stimulus, exp_obj);
         
     case 'FP',  % full-field pulses
         stimulus.control_flag = 5;
