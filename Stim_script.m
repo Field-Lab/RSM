@@ -66,7 +66,7 @@ clear_pending_stim
 stimulus = [];
 stimulus.type = 'FC';  
 stimulus.rgb = [1, 0, 0];
-stimulus.back_rgb = [0.5, 0.5, 0.5];
+stimulus.back_rgb = [0, 0, 0];
 stimulus.frames = 60;                       % "frames" is the number of frame refreshes to wait for each half-cycle (i.e. the pulse is on for the number of frames set here
                                             % and then off for the same number of frames. This completes one repetition of the pulse.
 stimulus.num_reps = 3;                      % "num_reps" gives the number of times the pulse on-off cycle is completed.
@@ -87,7 +87,7 @@ clear_pending_stim
 stimulus = [];
 stimulus.type = 'MS';  
 stimulus.rgb = [1, 1, 1];
-stimulus.back_rgb = [0.5, 0.5, 0.5];
+stimulus.back_rgb = [0, 0, 0];
 stimulus.frames = 60;                       % "frames" is the number of frame refreshes to wait for each half-cycle (i.e. the pulse is on for the number of frames set here
                                             % and then off for the same number of frames. This completes one repetition of the pulse.
 
@@ -100,7 +100,8 @@ stimulus.num_reps = 1; % "num_reps" gives the number of times the pulse on-off c
 stimulus.repeats = 1; % repeats of the whole stimulus block
 stimulus.wait_trigger = 0;
 stimulus.wait_key = 0;
-
+stimulus.sub_region = 0; % if 1: subdivide the stimulus field into 4 regions, show 4 spatially correlated flash squares 
+                         % otherwise: 0
 run_stimulus(display, stimulus);
 clear stimulus;
 

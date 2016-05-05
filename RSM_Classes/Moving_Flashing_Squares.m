@@ -34,6 +34,8 @@ classdef Moving_Flashing_Squares < handle
         backgrndcolor
         color
         
+        sub_region
+       
         frames
         
         trial_num
@@ -168,13 +170,33 @@ classdef Moving_Flashing_Squares < handle
                 return
             end
             
+            if (isfield(stimuli,'sub_region'))
+                obj.sub_region = stimuli.sub_region;
+            else
+                obj.sub_region = 0;
+            end
+            
             obj.wait_trigger = stimuli.wait_trigger;                            
             obj.wait_key = stimuli.wait_key;
             
             obj.stim_name = 'Moving Flashing Squares';
             obj.run_script = 'Run_Moving_Flashing_Squares( exp_obj.stimulus );';
             
-            obj.trial_num = obj.field_width * obj.field_height;
+            if obj.sub_region == 1
+                % check if field_width/field_height is even
+                if mod(obj.field_width, 2) ~= 0 || mod(obj.field_height, 2) ~= 0
+                    fprintf('\t RSM ERROR: field_width or field height is not even. Please define field_width/field_height value and try again. \n');
+                    return
+                else
+                    obj.trial_num = obj.field_width * obj.field_height / 4;
+                end
+            elseif obj.sub_region == 0;
+                obj.trial_num = obj.field_width * obj.field_height;
+            else
+                fprintf('\t RSM ERROR: sub_region must be 1 or 0. Please define sub_region value and try again. \n');
+                return
+            end
+
             obj.trial_num_total = obj.trial_num * obj.repeats;
             
             obj.reps_run = 1;
@@ -195,52 +217,80 @@ classdef Moving_Flashing_Squares < handle
         
         function Run_Moving_Flashing_Squares( obj )
             
-            x_vertices_all = zeros(4, obj.trial_num);
-            y_vertices_all = zeros(4, obj.trial_num);
+            x_vertices_all = cell(obj.trial_num, 1);
+            y_vertices_all = cell(obj.trial_num, 1);
             
-            for i = 1:obj.trial_num
-                xi = floor(mod(i-0.5, obj.field_width));
-                yi = floor((i-0.5)/obj.field_width);
-                x1 = obj.x_start + obj.stixel_width * xi;
-                x2 = obj.x_start + obj.stixel_width * (xi + 1);
-                y1 = obj.y_start + obj.stixel_height * yi;
-                y2 = obj.y_start + obj.stixel_height * (yi + 1);
-                
-                x_vertices_all(:, i) = [x1; x2; x2; x1];
-                y_vertices_all(:, i) = [y1; y1; y2; y2];
+            if obj.sub_region == 0
+                for i = 1:obj.trial_num
+                    xi = floor(mod(i-0.5, obj.field_width));
+                    yi = floor((i-0.5)/obj.field_width);
+                    x1 = obj.x_start + obj.stixel_width * xi;
+                    x2 = obj.x_start + obj.stixel_width * (xi + 1);
+                    y1 = obj.y_start + obj.stixel_height * yi;
+                    y2 = obj.y_start + obj.stixel_height * (yi + 1);
+
+                    x_vertices_all{i} = [x1; x2; x2; x1];
+                    y_vertices_all{i} = [y1; y1; y2; y2];
+                end
+            else
+                for i = 1:obj.trial_num
+                    xi = floor(mod(i-0.5, obj.field_width/2));
+                    yi = floor((i-0.5)/(obj.field_width/2));
+                    x1 = obj.x_start + obj.stixel_width * xi;
+                    x2 = obj.x_start + obj.stixel_width * (xi + 1);
+                    y1 = obj.y_start + obj.stixel_height * yi;
+                    y2 = obj.y_start + obj.stixel_height * (yi + 1);
+                    
+                    x_vertexi = [x1; x2; x2; x1];
+                    y_vertexi = [y1; y1; y2; y2];
+                    
+                    half_width = (obj.x_end - obj.x_start)/2;
+                    half_height = (obj.y_end - obj.y_start)/2;
+
+                    x_vertices_all{i} = [x_vertexi x_vertexi+half_width x_vertexi+half_width x_vertexi];
+                    y_vertices_all{i} = [y_vertexi y_vertexi y_vertexi+half_height y_vertexi+half_height];
+                end
             end
+            
+            mglClearScreen( obj.backgrndcolor );
+            mglFlush();
             
             for i = 1:obj.trial_num_total
                 
-                x_vertices = x_vertices_all(:, obj.seq(i));
-                y_vertices = y_vertices_all(:, obj.seq(i));
+                x_vertices = x_vertices_all{obj.seq(i)};
+                y_vertices = y_vertices_all{obj.seq(i)};
                 
-                % First phase: turn on colored flash.
-                mglQuad(x_vertices, y_vertices, obj.color, 0); 
+                cl = repmat(obj.color, 1, size(x_vertices, 2));
+                bgrd_cl = repmat(obj.backgrndcolor, 1, size(x_vertices, 2));
+                
+                for j = 1:obj.num_reps
+                    % First phase: turn on colored flash.
+                    mglQuad(x_vertices, y_vertices, cl, 0); 
 
-                mglFlush();
-                Pulse_DigOut_Channel;
+                    mglFlush();
+                    Pulse_DigOut_Channel;
 
-                % Now make sure the second buffer is loaded with the
-                % fore-ground
-                mglQuad(x_vertices, y_vertices, obj.color, 0);  
-                mglFlush();
+                    % Now make sure the second buffer is loaded with the
+                    % fore-ground
+                    mglQuad(x_vertices, y_vertices, cl, 0);  
+                    mglFlush();
 
-                RSM_Pause(obj.frames-1); 
+                    RSM_Pause(obj.frames-1); 
 
 
-                % Now the second phase of the cycle, return to background
-                mglQuad(x_vertices, y_vertices, obj.backgrndcolor, 0); 
+                    % Now the second phase of the cycle, return to background
+                    mglQuad(x_vertices, y_vertices, bgrd_cl, 0); 
 
-                mglFlush();
-                Pulse_DigOut_Channel;
+                    mglFlush();
+                    Pulse_DigOut_Channel;
 
-                % Now make sure the second buffer is loaded with the
-                % background
-                mglQuad(x_vertices, y_vertices, obj.backgrndcolor, 0);  
-                mglFlush();
+                    % Now make sure the second buffer is loaded with the
+                    % background
+                    mglQuad(x_vertices, y_vertices, bgrd_cl, 0);  
+                    mglFlush();
 
-                RSM_Pause(obj.frames-1);
+                    RSM_Pause(obj.frames-1);
+                end
                 
             end
             
